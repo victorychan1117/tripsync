@@ -28,7 +28,7 @@ const CONFIG_BY_COUNTRY: Record<string, MapConfig> = {
     router:        'GOOGLE_ROUTES',
     geocoder:      'GOOGLE',
     defaultLocale: 'en',
-    sdkUrl: `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places,geometry&language=ko`,
+    sdkUrl: `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places,geometry,marker&language=ko&loading=async`,
   },
 };
 
@@ -106,7 +106,7 @@ export function initGoogleMap(
   return new google.maps.Map(container, {
     center:            { lat: options.lat, lng: options.lng },
     zoom:              options.zoom ?? 13,
-    mapId:             'tripsync_map',
+    mapId:             'DEMO_MAP_ID',
     disableDefaultUI:  false,
     clickableIcons:    false,
     styles: [
