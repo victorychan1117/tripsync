@@ -55,7 +55,18 @@ export default function Sidebar({
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`/api/places?q=${encodeURIComponent(searchQuery)}&country=${room.country_code}`);
+      const dest = room.destination ?? '';
+      const COORDS: Record<string, { lat: number; lng: number }> = {
+        '푸꾸옥': { lat: 10.289, lng: 103.984 }, '나트랑': { lat: 12.238, lng: 109.197 },
+        '다낭':   { lat: 16.047, lng: 108.206 }, '호치민': { lat: 10.823, lng: 106.630 },
+        '하노이': { lat: 21.028, lng: 105.834 }, '방콕':   { lat: 13.736, lng: 100.523 },
+        '도쿄':   { lat: 35.676, lng: 139.650 }, '오사카': { lat: 34.693, lng: 135.502 },
+        '발리':   { lat: -8.340, lng: 115.092 }, '싱가포르': { lat: 1.352, lng: 103.820 },
+        '파리':   { lat: 48.857, lng: 2.347   }, '런던':   { lat: 51.507, lng: -0.128  },
+      };
+      const coord = COORDS[dest];
+      const locParam = coord ? `&lat=${coord.lat}&lng=${coord.lng}` : '';
+      const res = await fetch(`/api/places?q=${encodeURIComponent(searchQuery)}&country=${room.country_code}${locParam}`);
       const data = await res.json();
       setSearchResults(data.places ?? []);
     } catch {
@@ -63,7 +74,7 @@ export default function Sidebar({
     } finally {
       setSearching(false);
     }
-  }, [searchQuery, room.country_code]);
+  }, [searchQuery, room.country_code, room.destination]);
 
   const handleSelectPlace = useCallback(async (place: any) => {
     if (isLocked) return;

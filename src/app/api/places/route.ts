@@ -21,9 +21,12 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ places: data.documents ?? [] });
   }
 
-  // 해외 — Google Places Text Search API
+  // 해외 — Google Places Text Search API (위치 바이어스 포함)
+  const lat = req.nextUrl.searchParams.get('lat');
+  const lng = req.nextUrl.searchParams.get('lng');
+  const locationParam = lat && lng ? `&location=${lat},${lng}&radius=50000` : '';
   const res = await fetch(
-    `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}&language=ko&key=${process.env.GOOGLE_MAPS_SERVER_KEY}`,
+    `https://maps.googleapis.com/maps/api/place/textsearch/json?query=${encodeURIComponent(query)}${locationParam}&language=ko&key=${process.env.GOOGLE_MAPS_SERVER_KEY}`,
   );
   if (!res.ok) {
     const errText = await res.text();
