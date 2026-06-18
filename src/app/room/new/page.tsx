@@ -6,14 +6,18 @@ import { cn } from '@/lib/utils';
 
 // 자주 찾는 여행지 목록
 const POPULAR_DESTINATIONS = [
-  { name: '제주도',   code: 'KR' },
-  { name: '부산',     code: 'KR' },
-  { name: '서울',     code: 'KR' },
-  { name: '도쿄',     code: 'JP' },
-  { name: '방콕',     code: 'TH' },
-  { name: '오사카',   code: 'JP' },
-  { name: '싱가포르', code: 'SG' },
-  { name: '파리',     code: 'FR' },
+  { name: '제주도',   code: 'KR', flag: '🇰🇷' },
+  { name: '부산',     code: 'KR', flag: '🇰🇷' },
+  { name: '서울',     code: 'KR', flag: '🇰🇷' },
+  { name: '도쿄',     code: 'JP', flag: '🇯🇵' },
+  { name: '방콕',     code: 'TH', flag: '🇹🇭' },
+  { name: '오사카',   code: 'JP', flag: '🇯🇵' },
+  { name: '싱가포르', code: 'SG', flag: '🇸🇬' },
+  { name: '파리',     code: 'FR', flag: '🇫🇷' },
+  { name: '나트랑',   code: 'VN', flag: '🇻🇳' },
+  { name: '발리',     code: 'ID', flag: '🇮🇩' },
+  { name: '다낭',     code: 'VN', flag: '🇻🇳' },
+  { name: '뉴욕',     code: 'US', flag: '🇺🇸' },
 ];
 
 export default function NewRoomPage() {
@@ -83,20 +87,20 @@ export default function NewRoomPage() {
             <label className="text-xs font-bold text-slate-700 block mb-1.5">
               여행지 <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-2 mb-2">
+            <div className="flex flex-wrap gap-2 mb-2">
               {POPULAR_DESTINATIONS.map(d => (
                 <button
                   key={d.name}
                   type="button"
                   onClick={() => { setDestination(d.name); setCountryCode(d.code); }}
                   className={cn(
-                    'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all',
+                    'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all flex items-center gap-1',
                     destination === d.name
                       ? 'bg-brand-500 text-white shadow-brand-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
                   )}
                 >
-                  {d.name}
+                  <span>{d.flag}</span>{d.name}
                 </button>
               ))}
             </div>
@@ -114,13 +118,13 @@ export default function NewRoomPage() {
             <label className="text-xs font-bold text-slate-700 block mb-1.5">지역</label>
             <div className="flex gap-2">
               {[
-                { code: 'KR', label: '🇰🇷 국내' },
+                { code: 'KR',   label: '🇰🇷 국내' },
                 { code: 'INTL', label: '🌏 해외' },
               ].map(({ code, label }) => (
                 <button
                   key={code}
                   type="button"
-                  onClick={() => setCountryCode(code === 'INTL' ? 'JP' : 'KR')}
+                  onClick={() => setCountryCode(code === 'INTL' ? 'INTL' : 'KR')}
                   className={cn(
                     'flex-1 py-2.5 rounded-xl text-sm font-semibold transition-all',
                     (countryCode === 'KR') === (code === 'KR')

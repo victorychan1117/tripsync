@@ -195,8 +195,8 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
           selectedId={selectedId}
           onSelectMarker={setSelectedId}
           mapConfig={mapConfig}
-          centerLat={room.is_domestic ? 33.499 : 35.676}
-          centerLng={room.is_domestic ? 126.531 : 139.650}
+          centerLat={room.country_code === 'KR' ? 33.499 : 12.238}
+          centerLng={room.country_code === 'KR' ? 126.531 : 109.197}
           onCursorMove={broadcastCursor}
         />
 

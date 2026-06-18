@@ -28,12 +28,13 @@ const CONFIG_BY_COUNTRY: Record<string, MapConfig> = {
     router:        'GOOGLE_ROUTES',
     geocoder:      'GOOGLE',
     defaultLocale: 'en',
-    sdkUrl: `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places,geometry,marker&language=ko&loading=async`,
+    sdkUrl: `https://maps.googleapis.com/maps/api/js?key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}&libraries=places,geometry,marker&language=ko`,
   },
 };
 
 export function getMapConfig(countryCode: string): MapConfig {
-  return CONFIG_BY_COUNTRY[countryCode] ?? CONFIG_BY_COUNTRY['DEFAULT'];
+  if (countryCode === 'KR') return CONFIG_BY_COUNTRY['KR'];
+  return CONFIG_BY_COUNTRY['DEFAULT'];
 }
 
 // ── SDK 동적 로드 ─────────────────────────────────────────────────
