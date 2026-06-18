@@ -51,12 +51,11 @@ export default function Sidebar({
     setTimeout(() => setCopied(false), 2000);
   }, [room.id]);
 
-  // 카카오 장소 검색 (서버 API 경유)
   const handleSearch = useCallback(async () => {
     if (!searchQuery.trim()) return;
     setSearching(true);
     try {
-      const res = await fetch(`/api/places?q=${encodeURIComponent(searchQuery)}`);
+      const res = await fetch(`/api/places?q=${encodeURIComponent(searchQuery)}&country=${room.country_code}`);
       const data = await res.json();
       setSearchResults(data.places ?? []);
     } catch {
@@ -64,7 +63,7 @@ export default function Sidebar({
     } finally {
       setSearching(false);
     }
-  }, [searchQuery]);
+  }, [searchQuery, room.country_code]);
 
   const handleSelectPlace = useCallback(async (place: any) => {
     if (isLocked) return;
