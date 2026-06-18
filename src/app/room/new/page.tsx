@@ -1,7 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Navigation, Loader2 } from 'lucide-react';
+import { Navigation, Loader2, Search } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 const DOMESTIC = [
@@ -47,6 +47,7 @@ const INTERNATIONAL: { flag: string; region: string; places: string[]; code: str
 export default function NewRoomPage() {
   const router        = useRouter();
   const [tab,          setTab]          = useState<'KR' | 'INTL'>('KR');
+  const [searchQuery,  setSearchQuery]  = useState('');
   const [destination,  setDestination]  = useState('');
   const [countryCode,  setCountryCode]  = useState('KR');
   const [nights,       setNights]       = useState(2);
@@ -57,7 +58,17 @@ export default function NewRoomPage() {
   const handleSelect = (name: string, code: string) => {
     setDestination(name);
     setCountryCode(code);
+    setSearchQuery('');
   };
+
+  const filteredDomestic = DOMESTIC.filter(name =>
+    name.includes(searchQuery)
+  );
+
+  const filteredInternational = INTERNATIONAL.map(region => ({
+    ...region,
+    places: region.places.filter(name => name.includes(searchQuery)),
+  })).filter(region => region.places.length > 0 || region.region.includes(searchQuery));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -139,33 +150,55 @@ export default function NewRoomPage() {
               ))}
             </div>
 
+            {/* 검색창 */}
+            <div className="relative mb-2">
+              <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={e => setSearchQuery(e.target.value)}
+                placeholder={tab === 'KR' ? '국내 여행지 검색 (예: 제주)' : '해외 여행지 검색 (예: 나트랑)'}
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl border-2 border-slate-200 focus:border-brand-400 text-sm outline-none transition-colors"
+              />
+            </div>
+
             {/* 국내 목록 */}
             {tab === 'KR' && (
-              <div className="h-44 overflow-y-auto rounded-2xl border border-slate-200 p-3">
-                <div className="flex flex-wrap gap-2">
-                  {DOMESTIC.map(name => (
-                    <button
-                      key={name}
-                      type="button"
-                      onClick={() => handleSelect(name, 'KR')}
-                      className={cn(
-                        'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all',
-                        destination === name
-                          ? 'bg-brand-500 text-white'
-                          : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
-                      )}
-                    >
-                      🇰🇷 {name}
-                    </button>
-                  ))}
-                </div>
+              <div className="h-40 overflow-y-auto rounded-2xl border border-slate-200 p-3">
+                {filteredDomestic.length > 0 ? (
+                  <div className="flex flex-wrap gap-2">
+                    {filteredDomestic.map(name => (
+                      <button
+                        key={name}
+                        type="button"
+                        onClick={() => handleSelect(name, 'KR')}
+                        className={cn(
+                          'px-3 py-1.5 rounded-xl text-xs font-semibold transition-all',
+                          destination === name
+                            ? 'bg-brand-500 text-white'
+                            : 'bg-slate-100 text-slate-600 hover:bg-slate-200',
+                        )}
+                      >
+                        🇰🇷 {name}
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(searchQuery, 'KR')}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold bg-brand-50 text-brand-600 hover:bg-brand-100 transition-all"
+                  >
+                    🇰🇷 &quot;{searchQuery}&quot; 으로 만들기
+                  </button>
+                )}
               </div>
             )}
 
             {/* 해외 목록 */}
             {tab === 'INTL' && (
-              <div className="h-44 overflow-y-auto rounded-2xl border border-slate-200 p-3 flex flex-col gap-3">
-                {INTERNATIONAL.map(region => (
+              <div className="h-40 overflow-y-auto rounded-2xl border border-slate-200 p-3 flex flex-col gap-3">
+                {filteredInternational.length > 0 ? filteredInternational.map(region => (
                   <div key={region.region}>
                     <p className="text-xs font-bold text-slate-400 mb-1.5">
                       {region.flag} {region.region}
@@ -188,22 +221,22 @@ export default function NewRoomPage() {
                       ))}
                     </div>
                   </div>
-                ))}
+                )) : (
+                  <button
+                    type="button"
+                    onClick={() => handleSelect(searchQuery, 'INTL')}
+                    className="w-full px-3 py-2 rounded-xl text-xs font-semibold bg-brand-50 text-brand-600 hover:bg-brand-100 transition-all"
+                  >
+                    🌏 &quot;{searchQuery}&quot; 으로 만들기
+                  </button>
+                )}
               </div>
             )}
 
-            {/* 직접 입력 */}
-            <input
-              type="text"
-              value={destination}
-              onChange={e => setDestination(e.target.value)}
-              placeholder="목록에 없으면 직접 입력 (예: 코사무이)"
-              className="w-full mt-2 px-4 py-3 rounded-xl border-2 border-slate-200 focus:border-brand-400 text-sm outline-none transition-colors"
-            />
             {destination && (
-              <p className="text-xs text-slate-400 mt-1 pl-1">
+              <p className="text-xs text-slate-400 mt-1.5 pl-1">
                 선택됨: <span className="font-semibold text-brand-600">{destination}</span>
-                {countryCode !== 'KR' ? ' · 구글 지도' : ' · 카카오 지도'}
+                {countryCode !== 'KR' ? ' · 🌏 구글 지도' : ' · 🇰🇷 카카오 지도'}
               </p>
             )}
           </div>
