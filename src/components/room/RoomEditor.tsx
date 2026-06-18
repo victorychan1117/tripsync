@@ -289,8 +289,8 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
           selectedId={selectedId}
           onSelectMarker={setSelectedId}
           mapConfig={mapConfig}
-          centerLat={getDestinationCenter(room.destination, room.country_code).lat}
-          centerLng={getDestinationCenter(room.destination, room.country_code).lng}
+          centerLat={getDestinationCenter(room.destination ?? '', room.country_code ?? 'KR').lat}
+          centerLng={getDestinationCenter(room.destination ?? '', room.country_code ?? 'KR').lng}
           onCursorMove={broadcastCursor}
         />
 
