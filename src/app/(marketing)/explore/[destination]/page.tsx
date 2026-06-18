@@ -80,7 +80,7 @@ export default async function ExplorePage({ params }: Props) {
         {/* 일정 그리드 */}
         {rooms && rooms.length > 0 ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5 mb-12">
-            {rooms.map((room: any, i) => (
+            {rooms.map((room: any, i: number) => (
               <Link
                 key={room.id}
                 href={`/trips/${encodeURIComponent(decodedDest)}/${room.nights}/${room.id}`}

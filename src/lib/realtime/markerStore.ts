@@ -50,7 +50,7 @@ export const useMarkerStore = create<MarkerStore>((set, get) => ({
     if (error) { console.error('loadMarkers error:', error); return; }
 
     const map = new Map<number, MarkerWithRoute>();
-    (data ?? []).forEach(m => map.set(m.id, m));
+    (data ?? []).forEach((m: any) => map.set(m.id, m));
     set({ markers: map });
   },
 

@@ -85,7 +85,7 @@ export function useRoomSync(roomId: string, options: UseRoomSyncOptions) {
     channel.on(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'markers', filter: `room_id=eq.${roomId}` },
-      (payload) => {
+      (payload: any) => {
         const marker = payload.new as Marker;
         // 낙관적 업데이트 중인 항목은 무시 (중복 방지)
         if (pendingTempIds.current?.has(`temp-${marker.added_by_user}`)) return;
@@ -97,7 +97,7 @@ export function useRoomSync(roomId: string, options: UseRoomSyncOptions) {
     channel.on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'markers', filter: `room_id=eq.${roomId}` },
-      (payload) => {
+      (payload: any) => {
         const newM = payload.new as Marker;
         const oldM = payload.old as Partial<Marker>;
 
@@ -122,7 +122,7 @@ export function useRoomSync(roomId: string, options: UseRoomSyncOptions) {
     channel.on(
       'postgres_changes',
       { event: 'DELETE', schema: 'public', table: 'markers', filter: `room_id=eq.${roomId}` },
-      (payload) => {
+      (payload: any) => {
         const old = payload.old as Partial<Marker>;
         if (old.id) onMarkerEvent({ type: 'MARKER_DELETED', payload: { id: old.id } });
       },
@@ -132,7 +132,7 @@ export function useRoomSync(roomId: string, options: UseRoomSyncOptions) {
     channel.on(
       'postgres_changes',
       { event: 'UPDATE', schema: 'public', table: 'trip_rooms', filter: `id=eq.${roomId}` },
-      (payload) => {
+      (payload: any) => {
         const newR = payload.new as TripRoom;
         const oldR = payload.old as Partial<TripRoom>;
 
@@ -146,29 +146,27 @@ export function useRoomSync(roomId: string, options: UseRoomSyncOptions) {
 
     // ── Presence — 온라인 멤버 전체 동기화 ──────────────────────
     channel.on('presence', { event: 'sync' }, () => {
-      const state = channel.presenceState<PresenceUser>();
+      const state = (channel as any).presenceState();
       syncOnlineMembers(state, onPresenceEvent);
     });
 
-    channel.on('presence', { event: 'join' }, ({ newPresences }) => {
-      (newPresences as PresenceUser[]).forEach(p =>
+    channel.on('presence', { event: 'join' }, ({ newPresences }: any) => {
+      (newPresences as PresenceUser[]).forEach((p: PresenceUser) =>
         onPresenceEvent({ type: 'MEMBER_JOINED', payload: p })
       );
     });
 
-    channel.on('presence', { event: 'leave' }, ({ leftPresences }) => {
-      (leftPresences as PresenceUser[]).forEach(p =>
+    channel.on('presence', { event: 'leave' }, ({ leftPresences }: any) => {
+      (leftPresences as PresenceUser[]).forEach((p: PresenceUser) =>
         onPresenceEvent({ type: 'MEMBER_LEFT', payload: { userId: p.userId } })
       );
     });
 
-    // ── Broadcast — 커서 이동 (DB 저장 불필요, 고빈도) ──────────
-    channel.on('broadcast', { event: 'cursor_move' }, ({ payload }) => {
+    channel.on('broadcast', { event: 'cursor_move' }, ({ payload }: any) => {
       onPresenceEvent({ type: 'CURSOR_MOVED', payload });
     });
 
-    // ── 구독 시작 + Presence 등록 ────────────────────────────────
-    channel.subscribe(async (status) => {
+    channel.subscribe(async (status: any) => {
       if (status === 'SUBSCRIBED') {
         await channel.track({
           userId:   currentUserId ?? `guest-${Date.now()}`,

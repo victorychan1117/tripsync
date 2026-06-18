@@ -24,13 +24,13 @@ export async function GET() {
     { url: '/', priority: 1.0, changefreq: 'daily' },
   ];
 
-  const destPages = (destinations ?? []).map(d => ({
+  const destPages = (destinations ?? []).map((d: any) => ({
     url:        `/explore/${d.slug}`,
     priority:   0.9,
     changefreq: 'daily',
   }));
 
-  const tripPages = (seoPages ?? []).map(p => ({
+  const tripPages = (seoPages ?? []).map((p: any) => ({
     url:        p.url_path,
     priority:   p.priority ?? 0.7,
     changefreq: p.change_freq ?? 'weekly',
