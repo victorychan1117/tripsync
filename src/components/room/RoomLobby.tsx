@@ -1,49 +1,33 @@
 'use client';
 import { useState, useTransition } from 'react';
-import { useRouter }  from 'next/navigation';
+import { useRouter } from 'next/navigation';
 import { Users, Navigation, ArrowRight, Loader2 } from 'lucide-react';
-import { cn } from '@/lib/utils';
 
 interface Props {
-  roomId:          string;
-  roomTitle:       string;
-  memberCount:     number;
-  isAuthenticated: boolean;
+  roomId:      string;
+  roomTitle:   string;
+  memberCount: number;
 }
 
-export default function RoomLobby({ roomId, roomTitle, memberCount, isAuthenticated }: Props) {
-  const router        = useRouter();
+export default function RoomLobby({ roomId, roomTitle, memberCount }: Props) {
+  const router = useRouter();
   const [isPending, startTransition] = useTransition();
-  const [nickname,  setNickname]  = useState('');
-  const [error,     setError]     = useState('');
+  const [error, setError] = useState('');
 
-  const handleJoinAsGuest = async () => {
-    if (!nickname.trim() || nickname.trim().length < 2) {
-      setError('닉네임을 2자 이상 입력해주세요');
-      return;
-    }
+  const handleJoin = async () => {
     setError('');
 
-    // 게스트 세션 ID 생성 후 API로 멤버 등록
-    const guestSession = `guest-${Date.now()}-${Math.random().toString(36).slice(2)}`;
-
-    const res = await fetch('/api/markers', {
-      method: 'POST',
+    const res = await fetch('/api/rooms/join', {
+      method:  'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ action: 'join_guest', roomId, nickname: nickname.trim(), guestSession }),
+      body:    JSON.stringify({ roomId }),
     });
 
     if (res.ok) {
-      // 쿠키에 게스트 세션 저장
-      document.cookie = `guest_session=${guestSession};path=/;max-age=86400`;
       startTransition(() => router.push(`/room/${roomId}/edit`));
     } else {
       setError('입장에 실패했습니다. 다시 시도해주세요.');
     }
-  };
-
-  const handleLoginJoin = () => {
-    router.push(`/login?redirect=/room/${roomId}/edit`);
   };
 
   return (
@@ -68,66 +52,26 @@ export default function RoomLobby({ roomId, roomTitle, memberCount, isAuthentica
         </div>
 
         {/* 본문 */}
-        <div className="px-7 pb-7 pt-6">
+        <div className="px-7 pb-8 pt-6">
           <p className="text-[13px] text-slate-500 mb-5 leading-relaxed">
-            {isAuthenticated
-              ? '계정으로 입장하거나, 게스트로 참여할 수 있어요.'
-              : '닉네임을 입력하면 게스트로 바로 참여할 수 있어요.'}
+            이 여행에 초대받으셨어요.<br />아래 버튼을 눌러 참여하세요.
           </p>
 
-          {/* 로그인 입장 버튼 */}
-          {!isAuthenticated && (
-            <button
-              onClick={handleLoginJoin}
-              className="w-full flex items-center justify-between px-5 py-[13px] bg-brand-500 text-white rounded-2xl font-bold text-sm mb-3 hover:bg-brand-600 transition-colors"
-            >
-              <span>로그인하고 입장하기</span>
-              <ArrowRight size={16} />
-            </button>
+          {error && (
+            <p className="text-xs text-red-500 bg-red-50 rounded-xl px-3 py-2 mb-4">{error}</p>
           )}
 
-          {/* 구분선 */}
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex-1 h-px bg-slate-100" />
-            <span className="text-xs text-slate-400">또는</span>
-            <div className="flex-1 h-px bg-slate-100" />
-          </div>
-
-          {/* 게스트 입장 */}
-          <div className="flex flex-col gap-2">
-            <label className="text-xs font-semibold text-slate-600">
-              게스트 닉네임
-            </label>
-            <input
-              type="text"
-              value={nickname}
-              onChange={e => setNickname(e.target.value)}
-              onKeyDown={e => e.key === 'Enter' && handleJoinAsGuest()}
-              placeholder="예: 여행왕 김씨"
-              maxLength={20}
-              className={cn(
-                'w-full px-4 py-3 rounded-xl border-2 text-sm outline-none transition-all',
-                error
-                  ? 'border-red-300 bg-red-50'
-                  : 'border-slate-200 focus:border-brand-400 bg-slate-50',
-              )}
-            />
-            {error && (
-              <p className="text-xs text-red-500">{error}</p>
-            )}
-            <button
-              onClick={handleJoinAsGuest}
-              disabled={isPending || !nickname.trim()}
-              className="w-full flex items-center justify-center gap-2 py-[13px] rounded-2xl bg-slate-100 text-slate-700 font-bold text-sm mt-1 disabled:opacity-50 disabled:cursor-not-allowed hover:bg-slate-200 transition-colors"
-            >
-              {isPending ? <Loader2 size={16} className="animate-spin" /> : <Users size={16} />}
-              게스트로 입장하기
-            </button>
-          </div>
-
-          <p className="text-[11px] text-slate-400 text-center mt-4 leading-relaxed">
-            게스트로 참여 시 24시간 후 세션이 만료됩니다
-          </p>
+          <button
+            onClick={handleJoin}
+            disabled={isPending}
+            className="w-full flex items-center justify-between px-5 py-[14px] bg-brand-500 text-white rounded-2xl font-bold text-sm hover:bg-brand-600 transition-colors disabled:opacity-60"
+          >
+            <span>이 여행에 참여하기</span>
+            {isPending
+              ? <Loader2 size={16} className="animate-spin" />
+              : <ArrowRight size={16} />
+            }
+          </button>
         </div>
       </div>
     </div>

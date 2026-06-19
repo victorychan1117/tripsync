@@ -56,7 +56,7 @@ export default function PlaceCard({ marker, index, color, isSelected, isLocked, 
 
         {/* 내용 */}
         <div className="flex-1 min-w-0">
-          <div className="text-sm font-bold text-slate-900 truncate mb-1">
+          <div className="text-sm font-bold text-slate-900 line-clamp-2 mb-1">
             {marker.name}
           </div>
           <div
@@ -65,7 +65,7 @@ export default function PlaceCard({ marker, index, color, isSelected, isLocked, 
           >
             {cat.label}
           </div>
-          <div className="text-[11px] text-slate-400 truncate mb-1.5">
+          <div className="text-[11px] text-slate-400 mb-1.5 line-clamp-2 break-all">
             {marker.address ?? '주소 없음'}
           </div>
           {/* 체류 시간 */}

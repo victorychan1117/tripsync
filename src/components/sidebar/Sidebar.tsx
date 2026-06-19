@@ -7,6 +7,15 @@ import {
 import { cn } from '@/lib/utils';
 import PlaceCard      from './PlaceCard';
 import RouteConnector from './RouteConnector';
+import {
+  DndContext, closestCenter, PointerSensor, useSensor, useSensors,
+  type DragEndEvent,
+} from '@dnd-kit/core';
+import {
+  SortableContext, verticalListSortingStrategy,
+  useSortable, arrayMove,
+} from '@dnd-kit/sortable';
+import { CSS } from '@dnd-kit/utilities';
 import type { TripRoom, MarkerWithRoute } from '@/lib/supabase/types';
 import type { AffiliateInsertion } from '@/lib/affiliate/affiliateRules';
 
@@ -28,9 +37,56 @@ interface Props {
 
 const PIN_COLORS = ['#6366F1','#8B5CF6','#EC4899','#F97316','#EAB308','#10B981','#0EA5E9'];
 
+function SortablePlaceCard({ marker, index, color, isSelected, isLocked, onSelect, onRemove, route, routeIndex, getRouteAffiliate }: any) {
+  const { attributes, listeners, setNodeRef, transform, transition, isDragging } = useSortable({ id: marker.id });
+  const style = {
+    transform: CSS.Transform.toString(transform),
+    transition,
+    opacity: isDragging ? 0.5 : 1,
+  };
+
+  return (
+    <div ref={setNodeRef} style={style}>
+      <div className="flex items-start gap-1">
+        {!isLocked && (
+          <button
+            {...attributes}
+            {...listeners}
+            className="mt-3 p-1 text-slate-300 hover:text-slate-500 cursor-grab active:cursor-grabbing"
+          >
+            <svg width="12" height="16" viewBox="0 0 12 16" fill="currentColor">
+              <circle cx="4" cy="3" r="1.5"/><circle cx="8" cy="3" r="1.5"/>
+              <circle cx="4" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/>
+              <circle cx="4" cy="13" r="1.5"/><circle cx="8" cy="13" r="1.5"/>
+            </svg>
+          </button>
+        )}
+        <div className="flex-1">
+          <PlaceCard
+            marker={marker}
+            index={index}
+            color={color}
+            isSelected={isSelected}
+            isLocked={isLocked}
+            onSelect={onSelect}
+            onRemove={onRemove}
+          />
+          {route && (
+            <RouteConnector
+              segment={route}
+              index={routeIndex}
+              affiliate={getRouteAffiliate(routeIndex, Math.round((route.durationSec ?? 0) / 60))}
+            />
+          )}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 export default function Sidebar({
   room, mode, setMode, markers, isLocked, onlineCount,
-  onAddPlace, onRemoveMarker, onSelectMarker, selectedMarkerId,
+  onAddPlace, onRemoveMarker, onReorderMarker, onSelectMarker, selectedMarkerId,
   getRouteAffiliate,
 }: Props) {
   const [copied,      setCopied]      = useState(false);
@@ -39,6 +95,17 @@ export default function Sidebar({
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [searching,   setSearching]   = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
+  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 8 } }));
+
+  const handleDragEnd = useCallback((event: DragEndEvent) => {
+    const { active, over } = event;
+    if (!over || active.id === over.id) return;
+    const oldIndex = markers.findIndex(m => m.id === active.id);
+    const newIndex = markers.findIndex(m => m.id === over.id);
+    if (oldIndex === -1 || newIndex === -1) return;
+    const afterOrderIndex = newIndex > 0 ? markers[newIndex - 1].order_index : null;
+    onReorderMarker(Number(active.id), markers[oldIndex].day_number, afterOrderIndex);
+  }, [markers, onReorderMarker]);
 
   const totalMin = markers.reduce((s, m) => s + (m.route?.durationSec ? Math.round(m.route.durationSec / 60) : 0), 0);
   const totalKm  = markers.reduce((s, m) => s + (m.route?.distanceM  ? m.route.distanceM / 1000 : 0), 0);
@@ -189,26 +256,25 @@ export default function Sidebar({
             </p>
           </div>
         ) : (
-          markers.map((marker, i) => (
-            <div key={marker.id}>
-              <PlaceCard
-                marker={marker}
-                index={i}
-                color={PIN_COLORS[i % PIN_COLORS.length]}
-                isSelected={selectedMarkerId === marker.id}
-                isLocked={isLocked}
-                onSelect={() => onSelectMarker(marker.id)}
-                onRemove={() => onRemoveMarker(marker.id)}
-              />
-              {i < markers.length - 1 && markers[i + 1].route && (
-                <RouteConnector
-                  segment={markers[i + 1].route!}
+          <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+            <SortableContext items={markers.map(m => m.id)} strategy={verticalListSortingStrategy}>
+              {markers.map((marker, i) => (
+                <SortablePlaceCard
+                  key={marker.id}
+                  marker={marker}
                   index={i}
-                  affiliate={getRouteAffiliate(i, Math.round((markers[i + 1].route?.durationSec ?? 0) / 60))}
+                  color={PIN_COLORS[i % PIN_COLORS.length]}
+                  isSelected={selectedMarkerId === marker.id}
+                  isLocked={isLocked}
+                  onSelect={() => onSelectMarker(marker.id)}
+                  onRemove={() => onRemoveMarker(marker.id)}
+                  route={i < markers.length - 1 ? markers[i + 1].route : null}
+                  routeIndex={i}
+                  getRouteAffiliate={getRouteAffiliate}
                 />
-              )}
-            </div>
-          ))
+              ))}
+            </SortableContext>
+          </DndContext>
         )}
       </div>
 

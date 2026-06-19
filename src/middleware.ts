@@ -2,8 +2,8 @@ import { type NextRequest, NextResponse } from 'next/server';
 import { createServerClient } from '@supabase/ssr';
 
 // ── 인증이 필요한 경로 패턴 ────────────────────────────────────────
-const PROTECTED_PREFIXES = ['/my/'];
-const AUTH_ROUTES        = ['/login', '/auth/callback'];
+const PROTECTED_PREFIXES = ['/my/', '/room/'];
+const AUTH_ROUTES        = ['/login', '/signup', '/auth/callback'];
 
 export async function middleware(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });

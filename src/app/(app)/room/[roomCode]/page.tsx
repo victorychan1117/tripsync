@@ -1,61 +1,50 @@
 import { redirect } from 'next/navigation';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 import RoomLobby from '@/components/room/RoomLobby';
 
 interface Props {
   params: Promise<{ roomCode: string }>;
 }
 
-// 방 코드 입력 → 실제 room UUID 조회 후 에디터로 이동
 export default async function RoomEntryPage({ params }: Props) {
   const { roomCode } = await params;
-  const supabase     = await createClient();
 
-  // URL rewrite /r/:code → /room/:code 처리
-  // roomCode는 UUID 또는 초대코드(TRP-XXXX) 형태 모두 허용
-  let roomId = roomCode;
+  // 로그인 확인 (미들웨어에서 이미 보호되지만 서버 레벨에서도 재확인)
+  const userClient = await createClient();
+  const { data: { user } } = await userClient.auth.getUser();
+  if (!user) redirect(`/login?redirect=/room/${roomCode}`);
 
-  if (roomCode.length < 36) {
-    // 초대코드로 방 조회
-    const { data: room } = await supabase
-      .from('trip_rooms')
-      .select('id')
-      .eq('id', roomCode)
-      .maybeSingle();
-    if (room) roomId = room.id;
-  }
+  const serviceClient = createServiceClient();
 
-  // 방 정보 + 멤버 조회
-  const { data: room } = await supabase
+  // 방 조회
+  const { data: room } = await serviceClient
     .from('trip_rooms')
-    .select('*, trip_members(id, user_id, role, guest_nickname)')
-    .eq('id', roomId)
+    .select('*, trip_members(id, user_id, role)')
+    .eq('id', roomCode)
     .maybeSingle();
 
-  if (!room) {
-    // 방이 없으면 홈으로
-    redirect('/');
-  }
+  if (!room) redirect('/');
 
-  const { data: { user } } = await supabase.auth.getUser();
+  // 유저 DB ID 조회
+  const { data: dbUser } = await serviceClient
+    .from('users')
+    .select('id')
+    .eq('auth_id', user.id)
+    .maybeSingle();
 
-  // 이미 멤버인지 확인
-  const isMember = user
-    ? room.trip_members?.some((m: any) => m.user_id)
+  // 이미 멤버이면 에디터로 바로 이동
+  const isMember = dbUser
+    ? room.trip_members?.some((m: any) => m.user_id === dbUser.id)
     : false;
 
-  if (isMember) {
-    // 이미 멤버 → 바로 에디터로
-    redirect(`/room/${roomId}/edit`);
-  }
+  if (isMember) redirect(`/room/${roomCode}/edit`);
 
-  // 신규 방문자 → 로비 (닉네임 입력 or 로그인 유도)
+  // 멤버가 아닌 경우 → 참여 로비
   return (
     <RoomLobby
-      roomId={roomId}
+      roomId={roomCode}
       roomTitle={room.title}
       memberCount={room.member_count}
-      isAuthenticated={!!user}
     />
   );
 }

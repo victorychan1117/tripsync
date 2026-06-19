@@ -157,7 +157,7 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
   // ── 실시간 동기화 ────────────────────────────────────────────────
   const { broadcastCursor } = useRoomSync(room.id, {
     currentUserId:   currentMember?.user_id ?? null,
-    currentNickname: (currentMember as any)?.users?.nickname ?? currentMember?.guest_nickname ?? '게스트',
+    currentNickname: (currentMember as any)?.users?.nickname ?? '여행자',
     currentColor:    currentMember?.cursor_color ?? CURSOR_COLORS[0],
     pendingTempIds,
 
@@ -244,8 +244,7 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
       google_place_id: placeData.googlePlaceId ?? null,
       kakao_place_id:  placeData.kakaoPlaceId  ?? null,
       added_by_user:  currentMember?.user_id   ?? null,
-      added_by_guest: !currentMember?.user_id
-        ? (currentMember?.guest_nickname ?? null) : null,
+      added_by_guest: null,
     });
   }, [isLocked, room.id, currentMember]);
 
