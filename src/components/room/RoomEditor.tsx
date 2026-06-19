@@ -118,10 +118,11 @@ function getDestinationCenter(destination: string, countryCode: string) {
 const CURSOR_COLORS = ['#6366F1','#EC4899','#10B981','#F97316','#0EA5E9','#8B5CF6'];
 
 export default function RoomEditor({ initialRoom, initialMarkers, currentMember }: Props) {
-  const [room,        setRoom]        = useState(initialRoom);
-  const [selectedId,  setSelectedId]  = useState<number | null>(null);
-  const [isLocked,    setIsLocked]    = useState(initialRoom.is_locked);
-  const [onlineUsers, setOnlineUsers] = useState<Map<string, any>>(new Map());
+  const [room,           setRoom]           = useState(initialRoom);
+  const [selectedId,     setSelectedId]     = useState<number | null>(null);
+  const [isLocked,       setIsLocked]       = useState(initialRoom.is_locked);
+  const [onlineUsers,    setOnlineUsers]    = useState<Map<string, any>>(new Map());
+  const [mobileView,     setMobileView]     = useState<'map' | 'list'>('map');
 
   const mapConfig     = getMapConfig(room.country_code);
   const pendingTempIds = useRef(new Set<string>());
@@ -261,23 +262,33 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
 
   return (
     <div className="flex h-screen overflow-hidden bg-gray-50 font-sans">
-      {/* ── 사이드바 ── */}
-      <Sidebar
-        room={room}
-        markers={day1Markers}
-        isLocked={isLocked}
-        onlineCount={onlineUsers.size + 1}
-        onAddPlace={handleAddPlace}
-        onRemoveMarker={removeMarkerOptimistic}
-        onReorderMarker={reorderMarkerOptimistic}
-        onSelectMarker={setSelectedId}
-        selectedMarkerId={selectedId}
-        getRouteAffiliate={getRouteAffiliate}
-        countryCode={room.country_code}
-      />
 
-      {/* ── 지도 영역 ── */}
-      <div className="flex-1 relative overflow-hidden">
+      {/* ── 사이드바 (데스크톱: 항상 표시 / 모바일: list 뷰일 때만) ── */}
+      <div className={`
+        h-full
+        md:block md:w-auto md:flex-shrink-0
+        ${mobileView === 'list' ? 'block w-full' : 'hidden md:block'}
+      `}>
+        <Sidebar
+          room={room}
+          markers={day1Markers}
+          isLocked={isLocked}
+          onlineCount={onlineUsers.size + 1}
+          onAddPlace={handleAddPlace}
+          onRemoveMarker={removeMarkerOptimistic}
+          onReorderMarker={reorderMarkerOptimistic}
+          onSelectMarker={setSelectedId}
+          selectedMarkerId={selectedId}
+          getRouteAffiliate={getRouteAffiliate}
+          countryCode={room.country_code}
+        />
+      </div>
+
+      {/* ── 지도 영역 (데스크톱: 항상 표시 / 모바일: map 뷰일 때만) ── */}
+      <div className={`
+        flex-1 relative overflow-hidden
+        ${mobileView === 'map' ? 'block' : 'hidden md:block'}
+      `}>
         <MapCanvas
           markers={day1Markers}
           selectedId={selectedId}
@@ -297,7 +308,32 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
             onClose={() => setSelectedId(null)}
           />
         )}
+
+        {/* 모바일 — 목록 보기 버튼 */}
+        <button
+          onClick={() => setMobileView('list')}
+          className="md:hidden absolute bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-3 rounded-full bg-white text-slate-800 font-bold text-sm shadow-[0_4px_20px_rgba(0,0,0,0.18)] z-10"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+          장소 목록
+          {day1Markers.length > 0 && (
+            <span className="bg-indigo-500 text-white text-xs rounded-full w-5 h-5 flex items-center justify-center font-bold">
+              {day1Markers.length}
+            </span>
+          )}
+        </button>
       </div>
+
+      {/* 모바일 — 지도 보기 버튼 (목록 뷰일 때) */}
+      {mobileView === 'list' && (
+        <button
+          onClick={() => setMobileView('map')}
+          className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 flex items-center gap-2 px-5 py-3 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 text-white font-bold text-sm shadow-[0_4px_20px_rgba(99,102,241,0.45)] z-50"
+        >
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><path d="M3 6l9-3 9 3v13l-9 3-9-3V6z"/><path d="M12 3v17"/><path d="M3 6l9 4 9-4"/></svg>
+          지도 보기
+        </button>
+      )}
     </div>
   );
 }

@@ -16,6 +16,7 @@ export default async function HomePage() {
 
       {/* ── Hero ── */}
       <section
+        className="hero-section"
         style={{
           minHeight:      '100vh',
           paddingTop:     64,
@@ -43,7 +44,7 @@ export default async function HomePage() {
         }} />
 
         {/* 왼쪽: 텍스트 */}
-        <div style={{ flex: '0 0 52%', maxWidth: 560, paddingBottom: 60, position: 'relative', zIndex: 1 }}>
+        <div className="hero-text" style={{ flex: '0 0 52%', maxWidth: 560, paddingBottom: 60, position: 'relative', zIndex: 1 }}>
 
           {/* 뱃지 */}
           <div style={{
@@ -79,7 +80,7 @@ export default async function HomePage() {
           </p>
 
           {/* CTA 버튼 */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 48 }}>
+          <div className="hero-cta" style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 48 }}>
             <Link
               href="/room/new"
               style={{
@@ -149,7 +150,7 @@ export default async function HomePage() {
           </div>
 
           {/* 소셜 프루프 */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
+          <div className="hero-social" style={{ display: 'flex', alignItems: 'center', gap: 24, flexWrap: 'wrap' }}>
             {/* 아바타 더미 */}
             <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
               <div style={{ display: 'flex' }}>
@@ -171,7 +172,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div style={{ width: 1, height: 32, background: '#e2e8f0' }} />
+            <div className="hero-social-divider" style={{ width: 1, height: 32, background: '#e2e8f0' }} />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
               <div style={{ display: 'flex', gap: 2 }}>
@@ -185,7 +186,7 @@ export default async function HomePage() {
               </div>
             </div>
 
-            <div style={{ width: 1, height: 32, background: '#e2e8f0' }} />
+            <div className="hero-social-divider" style={{ width: 1, height: 32, background: '#e2e8f0' }} />
 
             <div>
               <div style={{ fontSize: 13, fontWeight: 700, color: '#0f172a' }}>50+</div>
@@ -195,7 +196,7 @@ export default async function HomePage() {
         </div>
 
         {/* 오른쪽: 이미지 카드 */}
-        <div style={{ flex: 1, position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', minHeight: '80vh' }}>
+        <div className="hero-image-wrap" style={{ flex: 1, position: 'relative', zIndex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-end', minHeight: '80vh' }}>
 
           {/* 메인 이미지 */}
           <div style={{
@@ -222,7 +223,7 @@ export default async function HomePage() {
           </div>
 
           {/* 플로팅 카드 1 — 현재 참여 중 */}
-          <div style={{
+          <div className="hero-floating" style={{
             position:     'absolute',
             top:          '12%',
             left:         -20,
@@ -246,7 +247,7 @@ export default async function HomePage() {
           </div>
 
           {/* 플로팅 카드 2 — 장소 추가됨 */}
-          <div style={{
+          <div className="hero-floating" style={{
             position:     'absolute',
             bottom:       '18%',
             right:        -16,
@@ -262,7 +263,7 @@ export default async function HomePage() {
           </div>
 
           {/* 플로팅 카드 3 — 날씨 */}
-          <div style={{
+          <div className="hero-floating" style={{
             position:     'absolute',
             top:          '38%',
             right:        -8,

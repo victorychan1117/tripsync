@@ -159,7 +159,7 @@ export default function TripDetailClient({
           </button>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
+        <div className="trip-detail-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 280px', gap: 20 }}>
 
           {/* 장소 목록 */}
           <div>

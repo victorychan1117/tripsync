@@ -224,6 +224,7 @@ export default function ScrollFeature() {
 
       {/* 카드 그리드 */}
       <div
+        className="dest-grid"
         style={{
           display:             'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',

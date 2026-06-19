@@ -29,6 +29,63 @@ html, body {
   height: 100%;
 }
 
+/* ── 반응형 ──────────────────────────────────────────────────── */
+@media (max-width: 768px) {
+  /* Hero */
+  .hero-section {
+    flex-direction: column !important;
+    padding-top: 80px !important;
+    padding-bottom: 40px !important;
+    min-height: auto !important;
+  }
+  .hero-text {
+    flex: none !important;
+    max-width: 100% !important;
+    padding-bottom: 0 !important;
+  }
+  .hero-image-wrap {
+    width: 100% !important;
+    min-height: 52vw !important;
+    max-height: 56vw !important;
+  }
+  .hero-image-wrap > div:first-child {
+    height: 100% !important;
+    border-radius: 20px !important;
+  }
+  .hero-floating { display: none !important; }
+  .hero-social { gap: 12px !important; flex-wrap: wrap !important; }
+  .hero-social-divider { display: none !important; }
+  .hero-cta { flex-wrap: wrap !important; }
+
+  /* Card grid */
+  .dest-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .dest-grid > * {
+    grid-column: span 1 !important;
+  }
+
+  /* Trip detail */
+  .trip-detail-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Navbar dropdown */
+  .nav-dropdown {
+    right: -12px !important;
+    min-width: 180px !important;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dest-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+  .dest-grid > * {
+    grid-column: span 1 !important;
+  }
+}
+
 /* ── 커스텀 애니메이션 ────────────────────────────────────────── */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }

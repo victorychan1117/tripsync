@@ -289,7 +289,7 @@ export default function Navbar() {
 
                 {/* 드롭다운 */}
                 {dropdownOpen && (
-                  <div style={{
+                  <div className="nav-dropdown" style={{
                     position:     'absolute',
                     top:          'calc(100% + 10px)',
                     right:        0,
