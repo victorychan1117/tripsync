@@ -9,7 +9,7 @@ const SLIDES = [
     desc: '나에게 꼭 맞는 여행을 찾고 더 쉽게 계획하세요.',
     image: '/landing/slide1.png',
     from: '#6366F1', to: '#8B5CF6',
-    size: 'large',   // 첫 번째 카드 크게
+    size: 'large',
   },
   {
     id: 2,
@@ -63,12 +63,12 @@ const SLIDES = [
     desc: '낭만적인 도시, 로컬 맛집, 감성 카페까지.',
     image: '/landing/slide7.png',
     from: '#6366F1', to: '#0EA5E9',
-    size: 'large',   // 마지막 카드 크게
+    size: 'large',
   },
 ] as const;
 
-function useInView(threshold = 0.15) {
-  const ref     = useRef<HTMLDivElement>(null);
+function useInView(threshold = 0.12) {
+  const ref = useRef<HTMLDivElement>(null);
   const [visible, setVisible] = useState(false);
   useEffect(() => {
     const el = ref.current;
@@ -99,82 +99,98 @@ function DestinationCard({
       ref={ref}
       style={{
         opacity:    visible ? 1 : 0,
-        transform:  visible ? 'translateY(0)' : 'translateY(28px)',
-        transition: `opacity 0.6s ease ${index * 0.08}s, transform 0.6s ease ${index * 0.08}s`,
-        borderRadius: 24,
+        transform:  visible ? 'translateY(0)' : 'translateY(32px)',
+        transition: `opacity 0.55s ease ${index * 0.07}s, transform 0.55s ease ${index * 0.07}s, box-shadow 0.25s ease`,
+        borderRadius: 'clamp(16px, 1.5vw, 24px)',
         overflow:     'hidden',
         background:   '#ffffff',
-        boxShadow:    '0 4px 24px rgba(0,0,0,0.07)',
+        boxShadow:    '0 2px 20px rgba(0,0,0,0.06)',
         cursor:       'pointer',
         gridColumn:   large ? 'span 2' : 'span 1',
       }}
       onMouseEnter={e => {
-        (e.currentTarget as HTMLElement).style.transform = 'translateY(-4px)';
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(0,0,0,0.13)';
+        (e.currentTarget as HTMLElement).style.transform = 'translateY(-5px)';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 16px 48px rgba(0,0,0,0.12)';
       }}
       onMouseLeave={e => {
         (e.currentTarget as HTMLElement).style.transform = 'translateY(0)';
-        (e.currentTarget as HTMLElement).style.boxShadow = '0 4px 24px rgba(0,0,0,0.07)';
+        (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 20px rgba(0,0,0,0.06)';
       }}
     >
-      {/* 이미지 영역 */}
+      {/* 이미지 영역 — aspect-ratio 기반으로 화면 크기에 자동 대응 */}
       <div
+        className={large ? 'dest-card-img-large' : 'dest-card-img'}
         style={{
-          width:    '100%',
-          height:   large ? 320 : 220,
-          overflow: 'hidden',
-          position: 'relative',
-          background: `linear-gradient(135deg, ${slide.from}10, ${slide.to}10)`,
+          width:       '100%',
+          aspectRatio: large ? '16/7' : '4/3',
+          overflow:    'hidden',
+          position:    'relative',
+          background:  `linear-gradient(135deg, ${slide.from}18, ${slide.to}18)`,
+          flexShrink:  0,
         }}
       >
         <img
           src={slide.image}
           alt={slide.title}
           style={{
-            width:      '100%',
-            height:     '100%',
-            objectFit:  'contain',
-            transition: 'transform 0.4s ease',
+            width:          '100%',
+            height:         '100%',
+            objectFit:      'contain',
+            objectPosition: 'center',
+            transition:     'transform 0.4s ease',
           }}
-          onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.04)'; }}
+          onMouseEnter={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1.05)'; }}
           onMouseLeave={e => { (e.currentTarget as HTMLImageElement).style.transform = 'scale(1)'; }}
         />
+        <div style={{
+          position:      'absolute',
+          bottom:        0, left: 0, right: 0,
+          height:        '28%',
+          background:    `linear-gradient(to top, ${slide.from}20, transparent)`,
+          pointerEvents: 'none',
+        }} />
       </div>
 
       {/* 텍스트 영역 */}
-      <div style={{ padding: '20px 24px 24px' }}>
-        <span
-          style={{
-            display:       'inline-block',
-            fontSize:      11,
-            fontWeight:    700,
-            letterSpacing: '0.1em',
-            textTransform: 'uppercase',
-            color:         slide.from,
-            background:    `${slide.from}15`,
-            padding:       '4px 10px',
-            borderRadius:  999,
-            marginBottom:  10,
-          }}
-        >
+      <div style={{ padding: 'clamp(14px, 1.4vw, 24px)' }}>
+        <span style={{
+          display:       'inline-block',
+          fontSize:      'clamp(10px, 0.75vw, 12px)',
+          fontWeight:    700,
+          letterSpacing: '0.12em',
+          textTransform: 'uppercase',
+          color:         slide.from,
+          background:    `${slide.from}18`,
+          padding:       '4px 10px',
+          borderRadius:  999,
+          marginBottom:  'clamp(8px, 0.7vw, 12px)',
+        }}>
           {String(index + 1).padStart(2, '0')}
         </span>
-        <h3 style={{ fontSize: 17, fontWeight: 800, color: '#0f172a', marginBottom: 3, lineHeight: 1.3 }}>
+        <h3 style={{
+          fontSize:     'clamp(14px, 1.1vw, 18px)',
+          fontWeight:   800,
+          color:        '#0f172a',
+          marginBottom: 4,
+          lineHeight:   1.3,
+        }}>
           {slide.title}
         </h3>
-        <p
-          style={{
-            fontSize:             15,
-            fontWeight:           700,
-            backgroundImage:      `linear-gradient(135deg, ${slide.from}, ${slide.to})`,
-            WebkitBackgroundClip: 'text',
-            WebkitTextFillColor:  'transparent',
-            marginBottom:         8,
-          }}
-        >
+        <p style={{
+          fontSize:             'clamp(13px, 0.95vw, 15px)',
+          fontWeight:           700,
+          backgroundImage:      `linear-gradient(135deg, ${slide.from}, ${slide.to})`,
+          WebkitBackgroundClip: 'text',
+          WebkitTextFillColor:  'transparent',
+          marginBottom:         8,
+        }}>
           {slide.highlight}
         </p>
-        <p style={{ fontSize: 13, color: '#94a3b8', lineHeight: 1.6 }}>
+        <p style={{
+          fontSize:   'clamp(11px, 0.85vw, 13px)',
+          color:      '#94a3b8',
+          lineHeight: 1.65,
+        }}>
           {slide.desc}
         </p>
       </div>
@@ -183,41 +199,55 @@ function DestinationCard({
 }
 
 export default function ScrollFeature() {
-  const { ref: headerRef, visible: headerVisible } = useInView(0.3);
+  const { ref: headerRef, visible: headerVisible } = useInView(0.25);
 
   return (
-    <section style={{ padding: '80px 5vw 100px', background: '#f8fafc' }}>
+    <section style={{
+      padding:    'clamp(60px, 8vh, 100px) 5vw clamp(60px, 8vh, 120px)',
+      background: '#f8fafc',
+    }}>
       {/* 섹션 헤더 */}
       <div
         ref={headerRef}
         style={{
-          textAlign:  'center',
-          marginBottom: 56,
-          opacity:    headerVisible ? 1 : 0,
-          transform:  headerVisible ? 'translateY(0)' : 'translateY(20px)',
-          transition: 'opacity 0.6s ease, transform 0.6s ease',
+          textAlign:    'center',
+          marginBottom: 'clamp(36px, 5vh, 60px)',
+          opacity:      headerVisible ? 1 : 0,
+          transform:    headerVisible ? 'translateY(0)' : 'translateY(24px)',
+          transition:   'opacity 0.6s ease, transform 0.6s ease',
         }}
       >
-        <span
-          style={{
-            display:       'inline-block',
-            fontSize:      12,
-            fontWeight:    700,
-            letterSpacing: '0.15em',
-            textTransform: 'uppercase',
-            color:         '#6366F1',
-            background:    '#6366F115',
-            padding:       '6px 14px',
-            borderRadius:  999,
-            marginBottom:  16,
-          }}
-        >
+        <span style={{
+          display:       'inline-block',
+          fontSize:      'clamp(10px, 0.8vw, 12px)',
+          fontWeight:    700,
+          letterSpacing: '0.18em',
+          textTransform: 'uppercase',
+          color:         '#6366F1',
+          background:    '#6366F118',
+          padding:       '6px 16px',
+          borderRadius:  999,
+          marginBottom:  'clamp(12px, 1.5vh, 18px)',
+        }}>
           Destinations
         </span>
-        <h2 style={{ fontSize: 'clamp(28px, 4vw, 40px)', fontWeight: 800, color: '#0f172a', lineHeight: 1.2, marginBottom: 12 }}>
+        <h2 style={{
+          fontSize:      'clamp(24px, 3vw, 44px)',
+          fontWeight:    800,
+          color:         '#0f172a',
+          lineHeight:    1.2,
+          marginBottom:  12,
+          letterSpacing: '-0.02em',
+        }}>
           어디로 떠나고 싶으세요?
         </h2>
-        <p style={{ fontSize: 15, color: '#64748b', lineHeight: 1.7 }}>
+        <p style={{
+          fontSize:   'clamp(13px, 1vw, 16px)',
+          color:      '#64748b',
+          lineHeight: 1.7,
+          maxWidth:   520,
+          margin:     '0 auto',
+        }}>
           국내부터 해외까지, 취향에 맞는 여행지를 골라 팀원과 함께 계획해보세요.
         </p>
       </div>
@@ -228,8 +258,8 @@ export default function ScrollFeature() {
         style={{
           display:             'grid',
           gridTemplateColumns: 'repeat(3, 1fr)',
-          gap:                 24,
-          maxWidth:            1200,
+          gap:                 'clamp(16px, 1.8vw, 28px)',
+          maxWidth:            'clamp(900px, 85vw, 1280px)',
           margin:              '0 auto',
         }}
       >

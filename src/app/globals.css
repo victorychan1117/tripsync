@@ -29,63 +29,6 @@ html, body {
   height: 100%;
 }
 
-/* ── 반응형 ──────────────────────────────────────────────────── */
-@media (max-width: 768px) {
-  /* Hero */
-  .hero-section {
-    flex-direction: column !important;
-    padding-top: 80px !important;
-    padding-bottom: 40px !important;
-    min-height: auto !important;
-  }
-  .hero-text {
-    flex: none !important;
-    max-width: 100% !important;
-    padding-bottom: 0 !important;
-  }
-  .hero-image-wrap {
-    width: 100% !important;
-    min-height: 52vw !important;
-    max-height: 56vw !important;
-  }
-  .hero-image-wrap > div:first-child {
-    height: 100% !important;
-    border-radius: 20px !important;
-  }
-  .hero-floating { display: none !important; }
-  .hero-social { gap: 12px !important; flex-wrap: wrap !important; }
-  .hero-social-divider { display: none !important; }
-  .hero-cta { flex-wrap: wrap !important; }
-
-  /* Card grid */
-  .dest-grid {
-    grid-template-columns: 1fr !important;
-  }
-  .dest-grid > * {
-    grid-column: span 1 !important;
-  }
-
-  /* Trip detail */
-  .trip-detail-grid {
-    grid-template-columns: 1fr !important;
-  }
-
-  /* Navbar dropdown */
-  .nav-dropdown {
-    right: -12px !important;
-    min-width: 180px !important;
-  }
-}
-
-@media (min-width: 769px) and (max-width: 1024px) {
-  .dest-grid {
-    grid-template-columns: repeat(2, 1fr) !important;
-  }
-  .dest-grid > * {
-    grid-column: span 1 !important;
-  }
-}
-
 /* ── 커스텀 애니메이션 ────────────────────────────────────────── */
 @keyframes pulse {
   0%, 100% { opacity: 1; transform: scale(1); }
@@ -97,6 +40,166 @@ html, body {
     stroke-dashoffset: 200;
     animation: drawPath 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;
   }
-
   .scrollbar-thin::-webkit-scrollbar { width: 4px; }
+}
+
+/* ═══════════════════════════════════════════════════════════════
+   반응형 브레이크포인트
+   xs:  < 480px   (소형 폰)
+   sm:  480–767px (대형 폰)
+   md:  768–1023px (태블릿)
+   lg:  1024–1279px (소형 노트북)
+   xl:  1280–1439px (노트북/데스크탑)
+   2xl: 1440–1919px (대형 모니터)
+   3xl: 1920px+  (초대형 모니터)
+═══════════════════════════════════════════════════════════════ */
+
+/* ── Mobile (< 768px) ──────────────────────────────────────── */
+@media (max-width: 767px) {
+  /* Hero */
+  .hero-section {
+    align-items: flex-start !important;
+    padding-top: 64px !important;
+  }
+  .hero-inner {
+    flex-direction: column !important;
+    padding: 24px 20px 40px !important;
+    gap: 32px !important;
+    align-items: flex-start !important;
+  }
+  .hero-text {
+    flex: none !important;
+    max-width: 100% !important;
+    padding-bottom: 0 !important;
+  }
+  .hero-image-wrap {
+    width: 100% !important;
+    min-height: 56vw !important;
+    max-height: 60vw !important;
+    align-self: center !important;
+  }
+  .hero-image-wrap > div:first-child {
+    max-width: 100% !important;
+    height: 100% !important;
+    border-radius: 20px 20px 0 0 !important;
+  }
+  .hero-floating   { display: none !important; }
+  .hero-social     { gap: 12px !important; flex-wrap: wrap !important; }
+  .hero-social-divider { display: none !important; }
+  .hero-cta        { gap: 10px !important; }
+
+  /* Feature card grid */
+  .dest-grid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+  .dest-grid > * { grid-column: span 1 !important; }
+  .dest-card-img  { aspect-ratio: 16/9 !important; height: auto !important; }
+
+  /* Trip detail */
+  .trip-detail-grid { grid-template-columns: 1fr !important; }
+
+  /* Navbar */
+  .nav-dropdown { right: -12px !important; min-width: 180px !important; }
+}
+
+/* ── Tablet (768px – 1023px) ───────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1023px) {
+  .hero-inner {
+    padding: 32px 5vw 0 !important;
+    gap: 32px !important;
+  }
+  .hero-text {
+    flex: 0 0 52% !important;
+    max-width: 480px !important;
+  }
+  .hero-image-wrap {
+    min-height: 55vw !important;
+    max-width: 44vw !important;
+  }
+  .hero-floating { display: none !important; }
+
+  .dest-grid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 18px !important;
+  }
+  .dest-grid > * { grid-column: span 1 !important; }
+
+  .trip-detail-grid { grid-template-columns: 1fr 240px !important; }
+}
+
+/* ── Small laptop (1024px – 1279px) ───────────────────────── */
+@media (min-width: 1024px) and (max-width: 1279px) {
+  .hero-inner {
+    padding: 48px 5vw 0 !important;
+    gap: 3vw !important;
+  }
+  .hero-text { flex: 0 0 50% !important; }
+
+  .dest-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    max-width: 960px !important;
+    gap: 18px !important;
+  }
+
+  .dest-card-img-large { height: 240px !important; }
+  .dest-card-img       { height: 176px !important; }
+}
+
+/* ── Standard desktop (1280px – 1439px) ───────────────────── */
+@media (min-width: 1280px) and (max-width: 1439px) {
+  .hero-inner {
+    padding: 60px 5vw 0 !important;
+    gap: 4vw !important;
+  }
+
+  .dest-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    max-width: 1100px !important;
+    gap: 22px !important;
+  }
+}
+
+/* ── Large monitor (1440px – 1919px) ──────────────────────── */
+@media (min-width: 1440px) and (max-width: 1919px) {
+  .hero-inner {
+    padding: 72px clamp(48px, 5vw, 80px) 0 !important;
+    gap: clamp(48px, 4vw, 80px) !important;
+  }
+
+  .dest-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    max-width: 1320px !important;
+    gap: 28px !important;
+  }
+  .dest-card-img-large { height: 360px !important; }
+  .dest-card-img       { height: 240px !important; }
+}
+
+/* ── Extra large (1920px+) ─────────────────────────────────── */
+@media (min-width: 1920px) {
+  .hero-section {
+    justify-content: center !important;
+  }
+  .hero-inner {
+    max-width: 1560px !important;
+    padding: 80px 80px 0 !important;
+    gap: 80px !important;
+  }
+  .hero-text {
+    flex: 0 0 48% !important;
+    max-width: 680px !important;
+  }
+
+  .dest-grid {
+    grid-template-columns: repeat(4, 1fr) !important;
+    max-width: 1680px !important;
+    gap: 32px !important;
+  }
+  .dest-grid > * { grid-column: span 1 !important; }
+  .dest-grid > *:first-child { grid-column: span 2 !important; }
+  .dest-grid > *:last-child  { grid-column: span 2 !important; }
+
+  .dest-card-img-large { height: 380px !important; }
+  .dest-card-img       { height: 260px !important; }
 }
