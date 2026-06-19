@@ -2,8 +2,12 @@ import Link from 'next/link';
 import { Navigation, MapPin, Users, ArrowRight, Star } from 'lucide-react';
 import Navbar from '@/components/landing/Navbar';
 import ScrollFeature from '@/components/landing/ScrollFeature';
+import { createClient } from '@/lib/supabase/server';
 
-export default function HomePage() {
+export default async function HomePage() {
+  const supabase = await createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  const isLoggedIn = !!user;
   return (
     <main style={{ background: '#ffffff' }}>
 
@@ -97,26 +101,51 @@ export default function HomePage() {
               여행 시작
               <ArrowRight size={16} />
             </Link>
-            <Link
-              href="/explore/jeju"
-              style={{
-                display:        'inline-flex',
-                alignItems:     'center',
-                gap:            8,
-                padding:        '14px 24px',
-                background:     '#ffffff',
-                color:          '#374151',
-                fontWeight:     600,
-                fontSize:       15,
-                borderRadius:   16,
-                textDecoration: 'none',
-                border:         '1.5px solid #e2e8f0',
-                transition:     'border-color 0.2s, background 0.2s',
-              }}
-            >
-              <MapPin size={18} />
-              일정 둘러보기
-            </Link>
+            {isLoggedIn ? (
+              <Link
+                href="/my/trips"
+                style={{
+                  display:        'inline-flex',
+                  alignItems:     'center',
+                  gap:            8,
+                  padding:        '14px 28px',
+                  background:     '#ffffff',
+                  color:          '#374151',
+                  fontWeight:     700,
+                  fontSize:       15,
+                  borderRadius:   16,
+                  textDecoration: 'none',
+                  border:         '1.5px solid #e2e8f0',
+                  transition:     'border-color 0.2s, background 0.2s',
+                }}
+              >
+                <MapPin size={18} />
+                여행 일지
+                <ArrowRight size={16} />
+              </Link>
+            ) : (
+              <Link
+                href="/signup"
+                style={{
+                  display:        'inline-flex',
+                  alignItems:     'center',
+                  gap:            8,
+                  padding:        '14px 28px',
+                  background:     '#ffffff',
+                  color:          '#374151',
+                  fontWeight:     700,
+                  fontSize:       15,
+                  borderRadius:   16,
+                  textDecoration: 'none',
+                  border:         '1.5px solid #e2e8f0',
+                  transition:     'border-color 0.2s, background 0.2s',
+                }}
+              >
+                <Users size={18} />
+                회원가입
+                <ArrowRight size={16} />
+              </Link>
+            )}
           </div>
 
           {/* 소셜 프루프 */}

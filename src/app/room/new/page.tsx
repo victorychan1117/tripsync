@@ -117,7 +117,7 @@ export default function NewRoomPage() {
             </div>
             <span className="text-xl font-extrabold text-white">새 여행 만들기</span>
           </div>
-          <p className="text-white/75 text-sm">목적지를 선택하고 팀원들과 일정을 짜보세요</p>
+          <p className="text-white/75 text-sm">혼자도, 함께도 — 초대 코드로 언제든 팀원 초대 가능</p>
         </div>
 
         <form onSubmit={handleSubmit} className="px-8 py-7 flex flex-col gap-5">

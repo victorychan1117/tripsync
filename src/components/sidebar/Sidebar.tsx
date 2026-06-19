@@ -1,9 +1,10 @@
 'use client';
 import { useState, useCallback, useRef } from 'react';
 import {
-  Navigation, User, Users, Copy, Check,
-  Plus, Lock, Search, X,
+  Navigation, UserPlus, Copy, Check,
+  Plus, Lock, Search, X, ChevronLeft,
 } from 'lucide-react';
+import Link from 'next/link';
 import { cn } from '@/lib/utils';
 import PlaceCard      from './PlaceCard';
 import RouteConnector from './RouteConnector';
@@ -21,8 +22,6 @@ import type { AffiliateInsertion } from '@/lib/affiliate/affiliateRules';
 
 interface Props {
   room:             TripRoom;
-  mode:             'personal' | 'team';
-  setMode:          (m: 'personal' | 'team') => void;
   markers:          MarkerWithRoute[];
   isLocked:         boolean;
   onlineCount:      number;
@@ -85,7 +84,7 @@ function SortablePlaceCard({ marker, index, color, isSelected, isLocked, onSelec
 }
 
 export default function Sidebar({
-  room, mode, setMode, markers, isLocked, onlineCount,
+  room, markers, isLocked, onlineCount,
   onAddPlace, onRemoveMarker, onReorderMarker, onSelectMarker, selectedMarkerId,
   getRouteAffiliate,
 }: Props) {
@@ -168,72 +167,46 @@ export default function Sidebar({
     <aside className="w-[340px] min-w-[340px] h-full bg-white border-r border-slate-100 flex flex-col shadow-[4px_0_24px_rgba(0,0,0,0.04)] z-10">
 
       {/* ── 헤더 ── */}
-      <div className="px-[18px] pt-[18px] pb-3 border-b border-slate-50">
+      <div className="px-[18px] pt-[14px] pb-3 border-b border-slate-50">
 
-        {/* 타이틀 */}
-        <div className="flex items-center gap-2.5 mb-3.5">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-brand-sm">
+        {/* 뒤로가기 */}
+        <Link
+          href="/my/trips"
+          className="inline-flex items-center gap-1.5 text-[12px] font-semibold text-slate-400 hover:text-brand-500 transition-colors mb-3"
+        >
+          <ChevronLeft size={14} />
+          여행 일지
+        </Link>
+
+        {/* 타이틀 + 초대 버튼 */}
+        <div className="flex items-center gap-2.5 mb-3">
+          <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-brand-500 to-violet-500 flex items-center justify-center shadow-brand-sm shrink-0">
             <Navigation size={19} className="text-white" />
           </div>
-          <div>
-            <div className="text-[15px] font-extrabold text-slate-900 leading-tight">
+          <div className="flex-1 min-w-0">
+            <div className="text-[15px] font-extrabold text-slate-900 leading-tight truncate">
               {room.title}
             </div>
             <div className="text-[11px] text-slate-400 mt-0.5">
               {markers.length}개 장소 · {totalMin >= 60 ? `${Math.floor(totalMin/60)}시간 ${totalMin%60}분` : `${totalMin}분`} · {totalKm.toFixed(1)}km
             </div>
           </div>
+          {/* 초대 버튼 */}
+          <button
+            onClick={handleCopyCode}
+            className={cn(
+              'flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all duration-200 shrink-0',
+              copied
+                ? 'bg-emerald-500 text-white shadow-[0_2px_10px_rgba(16,185,129,0.35)]'
+                : 'bg-gradient-to-br from-brand-500 to-violet-500 text-white shadow-brand-sm hover:-translate-y-0.5 hover:shadow-brand-md',
+            )}
+          >
+            {copied
+              ? <><Check size={13} />복사됨!</>
+              : <><UserPlus size={13} />초대</>
+            }
+          </button>
         </div>
-
-        {/* 개인/팀 모드 토글 */}
-        <div className="flex bg-slate-50 rounded-xl p-1 gap-1 mb-3">
-          {([
-            { key: 'personal', label: '개인 모드', Icon: User  },
-            { key: 'team',     label: '팀 모드',   Icon: Users },
-          ] as const).map(({ key, label, Icon }) => (
-            <button
-              key={key}
-              onClick={() => setMode(key)}
-              className={cn(
-                'flex-1 flex items-center justify-center gap-1.5 py-2 rounded-[9px] text-[13px] transition-all duration-200',
-                mode === key
-                  ? 'bg-white font-bold text-brand-500 shadow-card'
-                  : 'font-normal text-slate-400 hover:text-slate-600',
-              )}
-            >
-              <Icon size={14} />
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {/* 팀 모드: 초대 코드 */}
-        {mode === 'team' && (
-          <div className="bg-gradient-to-br from-brand-50 to-violet-50 border border-brand-100 rounded-[14px] px-3.5 py-3 flex items-center gap-2.5 animate-slide-up">
-            <div className="flex-1">
-              <div className="text-[9px] text-brand-500 font-bold tracking-widest uppercase mb-1">
-                초대 코드
-              </div>
-              <div className="text-[18px] font-black text-indigo-800 tracking-widest font-mono">
-                {room.id}
-              </div>
-              <div className="text-[10px] text-slate-400 mt-0.5">
-                {onlineCount}명 접속 중
-              </div>
-            </div>
-            <button
-              onClick={handleCopyCode}
-              className={cn(
-                'flex items-center gap-1.5 px-4 py-2 rounded-[11px] text-white text-xs font-bold transition-all duration-200',
-                copied
-                  ? 'bg-gradient-to-br from-emerald-500 to-green-600 shadow-[0_4px_14px_rgba(16,185,129,0.4)]'
-                  : 'bg-gradient-to-br from-brand-500 to-violet-500 shadow-brand-sm',
-              )}
-            >
-              {copied ? <><Check size={13} />복사됨!</> : <><Copy size={13} />복사</>}
-            </button>
-          </div>
-        )}
 
         {/* 잠금 상태 배너 */}
         {isLocked && (

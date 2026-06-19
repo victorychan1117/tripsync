@@ -122,9 +122,6 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
   const [selectedId,  setSelectedId]  = useState<number | null>(null);
   const [isLocked,    setIsLocked]    = useState(initialRoom.is_locked);
   const [onlineUsers, setOnlineUsers] = useState<Map<string, any>>(new Map());
-  const [mode,        setMode]        = useState<'personal' | 'team'>(
-    initialRoom.trip_members.length > 1 ? 'team' : 'personal'
-  );
 
   const mapConfig     = getMapConfig(room.country_code);
   const pendingTempIds = useRef(new Set<string>());
@@ -267,8 +264,6 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
       {/* ── 사이드바 ── */}
       <Sidebar
         room={room}
-        mode={mode}
-        setMode={setMode}
         markers={day1Markers}
         isLocked={isLocked}
         onlineCount={onlineUsers.size + 1}

@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Navigation, LogOut, User, Mail, Calendar, X } from 'lucide-react';
+import { Navigation, LogOut, User, Mail, Calendar, X, BookOpen } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -284,7 +284,7 @@ export default function Navbar() {
                     (e.currentTarget as HTMLElement).style.boxShadow = '0 2px 10px rgba(99,102,241,0.35)';
                   }}
                 >
-                  {initial}
+                  <User size={18} color="white" />
                 </button>
 
                 {/* 드롭다운 */}
@@ -309,6 +309,29 @@ export default function Navbar() {
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{name}</div>
                       <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user.email}</div>
                     </div>
+
+                    {/* 내 여행 */}
+                    <Link
+                      href="/my/trips"
+                      onClick={() => setDropdownOpen(false)}
+                      style={{
+                        width:      '100%',
+                        display:    'flex',
+                        alignItems: 'center',
+                        gap:        10,
+                        padding:    '12px 18px',
+                        fontSize:   14,
+                        fontWeight: 600,
+                        color:      '#374151',
+                        textDecoration: 'none',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#f8fafc')}
+                      onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+                    >
+                      <BookOpen size={16} color="#6366F1" />
+                      내 여행 일지
+                    </Link>
 
                     {/* 내 정보 */}
                     <button

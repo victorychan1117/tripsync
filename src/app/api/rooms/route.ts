@@ -21,12 +21,35 @@ export async function POST(req: NextRequest) {
   const { data: codeData } = await supabase.rpc('generate_room_code');
   const roomCode = codeData as string;
 
-  // 유저 DB ID 조회
-  const { data: dbUser } = await supabase
+  // 유저 DB ID 조회 (없으면 자동 생성)
+  let { data: dbUser } = await supabase
     .from('users')
     .select('id')
     .eq('auth_id', user.id)
     .single();
+
+  if (!dbUser) {
+    const nickname =
+      user.user_metadata?.full_name ??
+      user.user_metadata?.name ??
+      user.email?.split('@')[0] ??
+      '사용자';
+
+    await supabase.from('users').upsert({
+      auth_id:        user.id,
+      email:          user.email ?? null,
+      email_verified: !!user.email_confirmed_at,
+      nickname,
+      avatar_url:     user.user_metadata?.avatar_url ?? null,
+      provider:       user.app_metadata?.provider ?? 'email',
+      provider_uid:   user.user_metadata?.sub ?? null,
+      locale:         'ko',
+    }, { onConflict: 'auth_id' });
+
+    const { data: created } = await supabase
+      .from('users').select('id').eq('auth_id', user.id).single();
+    dbUser = created;
+  }
 
   if (!dbUser) {
     return NextResponse.json({ error: 'User not found' }, { status: 404 });
