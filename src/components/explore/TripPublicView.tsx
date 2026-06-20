@@ -1,10 +1,11 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { createClient } from '@/lib/supabase/client';
 
 const FLAG: Record<string, string> = {
   KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
@@ -56,17 +57,73 @@ function fmtStay(min: number): string | null {
   return h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
 }
 
-export default function TripPublicView({ trip, markers }: { trip: Trip; markers: Marker[] }) {
-  const flag    = FLAG[trip.country_code] ?? '🌐';
-  const dest    = trip.destination ?? '여행지';
-  const [g1, g2] = GRADIENT[trip.country_code] ?? ['#6366F1', '#8B5CF6'];
-  const days    = Array.from(new Set(markers.map(m => m.day_number))).sort((a, b) => a - b);
+function Toast({ message }: { message: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap"
+    >
+      {message}
+    </motion.div>
+  );
+}
+
+export default function TripPublicView({
+  trip,
+  markers,
+  userId,
+  initialSaved,
+}: {
+  trip: Trip;
+  markers: Marker[];
+  userId: string | null;
+  initialSaved: boolean;
+}) {
+  const flag      = FLAG[trip.country_code] ?? '🌐';
+  const dest      = trip.destination ?? '여행지';
+  const [g1, g2]  = GRADIENT[trip.country_code] ?? ['#6366F1', '#8B5CF6'];
+  const days      = Array.from(new Set(markers.map(m => m.day_number))).sort((a, b) => a - b);
   const [activeDay, setActiveDay] = useState<number>(days[0] ?? 1);
   const activeMarkers = markers.filter(m => m.day_number === activeDay);
+  const dayIdx  = days.indexOf(activeDay);
+  const hasPrev = dayIdx > 0;
+  const hasNext = dayIdx < days.length - 1;
 
-  const dayIdx     = days.indexOf(activeDay);
-  const hasPrev    = dayIdx > 0;
-  const hasNext    = dayIdx < days.length - 1;
+  const [isSaved, setIsSaved] = useState(initialSaved);
+  const [toast, setToast]     = useState<string | null>(null);
+
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }, []);
+
+  const handleToggleSave = useCallback(async () => {
+    if (!userId) {
+      showToast('로그인 후 여행을 저장할 수 있어요.');
+      return;
+    }
+    const supabase = createClient();
+    const wasSaved = isSaved;
+    setIsSaved(!wasSaved);
+
+    if (wasSaved) {
+      const { error } = await supabase
+        .from('saved_trips')
+        .delete()
+        .eq('user_id', userId)
+        .eq('room_id', trip.id);
+      if (error) { setIsSaved(true); showToast('저장 해제에 실패했어요.'); }
+      else showToast('저장을 취소했어요.');
+    } else {
+      const { error } = await supabase
+        .from('saved_trips')
+        .insert({ user_id: userId, room_id: trip.id });
+      if (error) { setIsSaved(false); showToast('저장에 실패했어요.'); }
+      else showToast('여행 일지를 저장했어요.');
+    }
+  }, [userId, isSaved, trip.id, showToast]);
 
   return (
     <div className="min-h-screen">
@@ -76,13 +133,35 @@ export default function TripPublicView({ trip, markers }: { trip: Trip; markers:
         style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}
       >
         <div className="max-w-4xl mx-auto">
-          <Link
-            href="/explore"
-            className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold mb-5 transition-colors"
-          >
-            <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
-            여행 탐색
-          </Link>
+          <div className="flex items-center justify-between mb-5">
+            <Link
+              href="/explore"
+              className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold transition-colors"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
+              여행 탐색
+            </Link>
+
+            {/* 하트 저장 버튼 */}
+            <motion.button
+              onClick={handleToggleSave}
+              whileTap={{ scale: 0.8 }}
+              className={cn(
+                'flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-200',
+                isSaved
+                  ? 'bg-red-500 text-white shadow-lg shadow-red-500/30'
+                  : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
+              )}
+            >
+              <Heart
+                size={15}
+                fill={isSaved ? 'white' : 'none'}
+                color="white"
+                className="transition-all"
+              />
+              {isSaved ? '저장됨' : '저장하기'}
+            </motion.button>
+          </div>
 
           <div className="flex items-start gap-4">
             <div className="text-5xl leading-none mt-1 select-none drop-shadow">{flag}</div>
@@ -138,7 +217,7 @@ export default function TripPublicView({ trip, markers }: { trip: Trip; markers:
           </div>
         ) : (
           <>
-            {/* Day 탭 + 이전/다음 */}
+            {/* Day 탭 */}
             <div className="flex items-center gap-3 mb-6">
               <button
                 onClick={() => hasPrev && setActiveDay(days[dayIdx - 1])}
@@ -198,8 +277,8 @@ export default function TripPublicView({ trip, markers }: { trip: Trip; markers:
                     <p className="text-sm text-slate-400">이 날은 아직 장소가 없어요</p>
                   </div>
                 ) : activeMarkers.map((m, i) => {
-                  const icon  = CATEGORY_ICON[m.category] ?? '📍';
-                  const stay  = fmtStay(m.stay_minutes);
+                  const icon = CATEGORY_ICON[m.category] ?? '📍';
+                  const stay = fmtStay(m.stay_minutes);
                   return (
                     <motion.div
                       key={m.id}
@@ -239,7 +318,7 @@ export default function TripPublicView({ trip, markers }: { trip: Trip; markers:
           </>
         )}
 
-        {/* 나도 만들기 CTA */}
+        {/* CTA */}
         <div className="mt-10 bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-3xl p-6 text-center">
           <p className="text-[15px] font-extrabold text-slate-800 mb-1.5">
             이런 여행 일정 나도 만들어볼까요? ✈️
@@ -255,6 +334,11 @@ export default function TripPublicView({ trip, markers }: { trip: Trip; markers:
           </Link>
         </div>
       </div>
+
+      {/* 토스트 */}
+      <AnimatePresence>
+        {toast && <Toast key={toast + Date.now()} message={toast} />}
+      </AnimatePresence>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { notFound } from 'next/navigation';
-import Link from 'next/link';
 import { createClient } from '@/lib/supabase/server';
 import Navbar from '@/components/landing/Navbar';
 import TripPublicView from '@/components/explore/TripPublicView';
@@ -29,7 +28,8 @@ export default async function TripPublicPage({ params }: Props) {
   const { tripId } = await params;
   const supabase = await createClient();
 
-  const [{ data: trip }, { data: markers }] = await Promise.all([
+  const [{ data: { user } }, { data: trip }, { data: markers }] = await Promise.all([
+    supabase.auth.getUser(),
     supabase
       .from('trip_rooms')
       .select('id, title, destination, country_code, is_domestic, start_date, end_date, nights, marker_count, member_count, view_count')
@@ -46,6 +46,29 @@ export default async function TripPublicPage({ params }: Props) {
 
   if (!trip) notFound();
 
+  // 로그인 사용자의 저장 여부 확인
+  let userId: string | null = null;
+  let initialSaved = false;
+
+  if (user) {
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', user.id)
+      .single();
+
+    if (dbUser) {
+      userId = dbUser.id;
+      const { data: saved } = await supabase
+        .from('saved_trips')
+        .select('id')
+        .eq('user_id', dbUser.id)
+        .eq('room_id', tripId)
+        .maybeSingle();
+      initialSaved = !!saved;
+    }
+  }
+
   // 조회수 증가 (fire-and-forget)
   supabase
     .from('trip_rooms')
@@ -56,7 +79,12 @@ export default async function TripPublicPage({ params }: Props) {
   return (
     <main className="min-h-screen bg-[#F6F4FF]">
       <Navbar />
-      <TripPublicView trip={trip} markers={markers ?? []} />
+      <TripPublicView
+        trip={trip}
+        markers={markers ?? []}
+        userId={userId}
+        initialSaved={initialSaved}
+      />
     </main>
   );
 }

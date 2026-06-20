@@ -1,9 +1,10 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useCallback } from 'react';
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Eye, Search, X, Sparkles, Compass, Clock } from 'lucide-react';
+import { MapPin, Eye, Search, X, Sparkles, Compass, Clock, Heart } from 'lucide-react';
+import { createClient } from '@/lib/supabase/client';
 
 // ─── Types ──────────────────────────────────────────────────────────────────
 export interface PublicTrip {
@@ -31,28 +32,17 @@ const FLAG: Record<string, string> = {
 };
 
 const GRADIENT: Record<string, [string, string]> = {
-  KR: ['#43B89C', '#3B82F6'],
-  JP: ['#FF6B6B', '#FF8E53'],
-  TH: ['#F59E0B', '#EF4444'],
-  VN: ['#10B981', '#06B6D4'],
-  ID: ['#F97316', '#EF4444'],
-  SG: ['#0EA5E9', '#6366F1'],
-  MY: ['#F59E0B', '#10B981'],
-  PH: ['#3B82F6', '#06B6D4'],
-  TW: ['#EC4899', '#8B5CF6'],
-  HK: ['#EF4444', '#F97316'],
-  CN: ['#EF4444', '#F59E0B'],
-  FR: ['#6366F1', '#3B82F6'],
-  IT: ['#EF4444', '#F97316'],
-  ES: ['#F59E0B', '#EF4444'],
-  GB: ['#3B82F6', '#6366F1'],
-  DE: ['#64748B', '#3B82F6'],
-  US: ['#3B82F6', '#EF4444'],
-  AU: ['#F97316', '#FBBF24'],
-  NZ: ['#10B981', '#3B82F6'],
-  TR: ['#EF4444', '#F97316'],
-  GR: ['#3B82F6', '#06B6D4'],
-  CH: ['#EF4444', '#64748B'],
+  KR: ['#43B89C', '#3B82F6'], JP: ['#FF6B6B', '#FF8E53'],
+  TH: ['#F59E0B', '#EF4444'], VN: ['#10B981', '#06B6D4'],
+  ID: ['#F97316', '#EF4444'], SG: ['#0EA5E9', '#6366F1'],
+  MY: ['#F59E0B', '#10B981'], PH: ['#3B82F6', '#06B6D4'],
+  TW: ['#EC4899', '#8B5CF6'], HK: ['#EF4444', '#F97316'],
+  CN: ['#EF4444', '#F59E0B'], FR: ['#6366F1', '#3B82F6'],
+  IT: ['#EF4444', '#F97316'], ES: ['#F59E0B', '#EF4444'],
+  GB: ['#3B82F6', '#6366F1'], DE: ['#64748B', '#3B82F6'],
+  US: ['#3B82F6', '#EF4444'], AU: ['#F97316', '#FBBF24'],
+  NZ: ['#10B981', '#3B82F6'], TR: ['#EF4444', '#F97316'],
+  GR: ['#3B82F6', '#06B6D4'], CH: ['#EF4444', '#64748B'],
 };
 
 const EUROPE_CODES = new Set(['FR','IT','ES','GB','DE','AT','NL','PT','CH','GR','TR']);
@@ -62,14 +52,13 @@ const DURATIONS = [
   { label: '1~3일', value: '1-3' },
   { label: '4~5일', value: '4-5' },
   { label: '6~7일', value: '6-7' },
-  { label: '8일+', value: '8+' },
+  { label: '8일+',  value: '8+' },
 ] as const;
 type DurationFilter = typeof DURATIONS[number]['value'];
 
 function getGradient(code: string): [string, string] {
   return GRADIENT[code] ?? ['#6366F1', '#8B5CF6'];
 }
-
 function getCountryGroup(code: string): string {
   if (code === 'KR') return '한국';
   if (code === 'JP') return '일본';
@@ -78,17 +67,40 @@ function getCountryGroup(code: string): string {
   if (EUROPE_CODES.has(code)) return '유럽';
   return '기타';
 }
-
 function fmtNights(nights: number): string {
   if (nights === 0) return '당일치기';
   return `${nights}박 ${nights + 1}일`;
 }
 
+// ─── Toast ───────────────────────────────────────────────────────────────────
+function Toast({ message }: { message: string }) {
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 24 }}
+      animate={{ opacity: 1, y: 0 }}
+      exit={{ opacity: 0, y: 12 }}
+      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap"
+    >
+      {message}
+    </motion.div>
+  );
+}
+
 // ─── TripCard ────────────────────────────────────────────────────────────────
-function TripCard({ trip, index }: { trip: PublicTrip; index: number }) {
+function TripCard({
+  trip,
+  index,
+  isSaved,
+  onToggleSave,
+}: {
+  trip: PublicTrip;
+  index: number;
+  isSaved: boolean;
+  onToggleSave: (e: React.MouseEvent, id: string) => void;
+}) {
   const [g1, g2] = getGradient(trip.country_code);
-  const flag     = FLAG[trip.country_code] ?? '🌐';
-  const dest     = trip.destination ?? '여행지';
+  const flag      = FLAG[trip.country_code] ?? '🌐';
+  const dest      = trip.destination ?? '여행지';
 
   return (
     <Link href={`/t/${trip.id}`}>
@@ -109,6 +121,8 @@ function TripCard({ trip, index }: { trip: PublicTrip; index: number }) {
             <div className="text-5xl mb-2 drop-shadow">{flag}</div>
             <div className="text-white/90 text-[13px] font-bold drop-shadow">{dest}</div>
           </div>
+
+          {/* 장소 수 칩 */}
           <div
             className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-[10px] px-2.5 py-1 flex items-center gap-1 text-xs font-bold text-slate-700"
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
@@ -116,16 +130,32 @@ function TripCard({ trip, index }: { trip: PublicTrip; index: number }) {
             <MapPin size={11} color={g1} />
             {trip.marker_count}개 장소
           </div>
+
+          {/* 기간 칩 */}
           <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm rounded-[10px] px-2 py-1 text-[11px] font-bold text-white">
             {fmtNights(trip.nights)}
           </div>
+
+          {/* 하트 버튼 */}
+          <motion.button
+            onClick={e => onToggleSave(e, trip.id)}
+            whileTap={{ scale: 0.75 }}
+            className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md transition-colors hover:bg-white"
+            aria-label={isSaved ? '저장 취소' : '저장하기'}
+          >
+            <Heart
+              size={15}
+              fill={isSaved ? '#EF4444' : 'none'}
+              color={isSaved ? '#EF4444' : '#94a3b8'}
+              className="transition-colors"
+            />
+          </motion.button>
         </div>
 
         {/* 콘텐츠 */}
         <div className="p-4">
           <div className="flex items-center gap-1 text-xs text-slate-400 font-semibold mb-1.5">
-            <MapPin size={11} />
-            {dest}
+            <MapPin size={11} />{dest}
           </div>
           <h3 className="text-[14px] font-extrabold text-slate-900 leading-snug mb-3 tracking-tight line-clamp-2">
             {trip.title}
@@ -206,15 +236,70 @@ function EmptyState({ hasFilters, onReset }: { hasFilters: boolean; onReset: () 
 export default function ExploreClient({
   trips,
   isLoggedIn,
+  userId,
+  initialSavedIds,
 }: {
   trips: PublicTrip[];
   isLoggedIn: boolean;
+  userId: string | null;
+  initialSavedIds: string[];
 }) {
   const [countryFilter, setCountryFilter] = useState('전체');
   const [duration, setDuration]           = useState<DurationFilter>('all');
   const [search, setSearch]               = useState('');
+  const [savedSet, setSavedSet]           = useState<Set<string>>(() => new Set(initialSavedIds));
+  const [toast, setToast]                 = useState<string | null>(null);
 
-  // 실제 데이터에서 나라 그룹을 동적으로 추출
+  const showToast = useCallback((msg: string) => {
+    setToast(msg);
+    setTimeout(() => setToast(null), 2500);
+  }, []);
+
+  const handleToggleSave = useCallback(async (e: React.MouseEvent, tripId: string) => {
+    e.preventDefault();
+    e.stopPropagation();
+
+    if (!isLoggedIn || !userId) {
+      showToast('로그인 후 여행을 저장할 수 있어요.');
+      return;
+    }
+
+    const supabase = createClient();
+    const wasSaved = savedSet.has(tripId);
+
+    // 낙관적 업데이트
+    setSavedSet(prev => {
+      const next = new Set(prev);
+      if (wasSaved) next.delete(tripId); else next.add(tripId);
+      return next;
+    });
+
+    if (wasSaved) {
+      const { error } = await supabase
+        .from('saved_trips')
+        .delete()
+        .eq('user_id', userId)
+        .eq('room_id', tripId);
+      if (error) {
+        setSavedSet(prev => { const next = new Set(prev); next.add(tripId); return next; });
+        showToast('저장 해제에 실패했어요.');
+      } else {
+        showToast('저장을 취소했어요.');
+      }
+    } else {
+      const { error } = await supabase
+        .from('saved_trips')
+        .insert({ user_id: userId, room_id: tripId });
+      if (error) {
+        setSavedSet(prev => { const next = new Set(prev); next.delete(tripId); return next; });
+        showToast('저장에 실패했어요.');
+      } else {
+        showToast('여행 일지를 저장했어요.');
+      }
+    }
+  }, [isLoggedIn, userId, savedSet, showToast]);
+
+  // 나라 그룹 동적 추출
   const countryGroups = useMemo(() => {
     const groups = new Set(trips.map(t => getCountryGroup(t.country_code)));
     return ['전체', ...Array.from(groups).sort()];
@@ -298,7 +383,13 @@ export default function ExploreClient({
               </h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {featured.map((trip, i) => (
-                  <TripCard key={trip.id} trip={trip} index={i} />
+                  <TripCard
+                    key={trip.id}
+                    trip={trip}
+                    index={i}
+                    isSaved={savedSet.has(trip.id)}
+                    onToggleSave={handleToggleSave}
+                  />
                 ))}
               </div>
             </div>
@@ -309,8 +400,6 @@ export default function ExploreClient({
       {/* ── Sticky 필터바 ── */}
       <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
-
-          {/* 검색창 */}
           <div className="relative">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
             <input
@@ -330,19 +419,14 @@ export default function ExploreClient({
             )}
           </div>
 
-          {/* 필터 pills */}
           <div className="flex items-center gap-4 overflow-x-auto pb-0.5 [scrollbar-width:none] [-webkit-overflow-scrolling:touch]">
-            {/* 여행지 */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="text-[11px] font-semibold text-slate-400 flex-shrink-0">여행지</span>
               {countryGroups.map(c => (
                 <FilterPill key={c} label={c} active={countryFilter === c} onClick={() => setCountryFilter(c)} />
               ))}
             </div>
-
             <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
-
-            {/* 기간 */}
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="text-[11px] font-semibold text-slate-400 flex-shrink-0">기간</span>
               {DURATIONS.map(d => (
@@ -351,7 +435,6 @@ export default function ExploreClient({
             </div>
           </div>
 
-          {/* 필터 활성 요약 */}
           <AnimatePresence>
             {hasFilters && (
               <motion.div
@@ -367,8 +450,7 @@ export default function ExploreClient({
                   onClick={resetFilters}
                   className="text-xs font-semibold text-slate-400 hover:text-violet-500 flex items-center gap-1 transition-colors"
                 >
-                  <X size={11} />
-                  초기화
+                  <X size={11} />초기화
                 </button>
               </motion.div>
             )}
@@ -396,7 +478,13 @@ export default function ExploreClient({
               className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
             >
               {filtered.map((trip, i) => (
-                <TripCard key={trip.id} trip={trip} index={i} />
+                <TripCard
+                  key={trip.id}
+                  trip={trip}
+                  index={i}
+                  isSaved={savedSet.has(trip.id)}
+                  onToggleSave={handleToggleSave}
+                />
               ))}
             </motion.div>
           ) : (
@@ -404,6 +492,11 @@ export default function ExploreClient({
           )}
         </AnimatePresence>
       </div>
+
+      {/* ── 토스트 ── */}
+      <AnimatePresence>
+        {toast && <Toast key={toast + Date.now()} message={toast} />}
+      </AnimatePresence>
     </div>
   );
 }

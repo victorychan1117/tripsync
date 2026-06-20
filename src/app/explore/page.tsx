@@ -3,7 +3,6 @@ import ExploreClient, { type PublicTrip } from '@/components/explore/ExploreClie
 import { createClient } from '@/lib/supabase/server';
 
 export const metadata = { title: '여행 탐색 | TripSync' };
-
 export const revalidate = 60;
 
 export default async function ExplorePage() {
@@ -19,12 +18,34 @@ export default async function ExplorePage() {
       .limit(60),
   ]);
 
+  let userId: string | null = null;
+  let initialSavedIds: string[] = [];
+
+  if (user) {
+    const { data: dbUser } = await supabase
+      .from('users')
+      .select('id')
+      .eq('auth_id', user.id)
+      .single();
+
+    if (dbUser) {
+      userId = dbUser.id;
+      const { data: saved } = await supabase
+        .from('saved_trips')
+        .select('room_id')
+        .eq('user_id', dbUser.id);
+      initialSavedIds = saved?.map(s => s.room_id) ?? [];
+    }
+  }
+
   return (
     <main className="min-h-screen bg-slate-50">
       <Navbar />
       <ExploreClient
         trips={(trips ?? []) as PublicTrip[]}
         isLoggedIn={!!user}
+        userId={userId}
+        initialSavedIds={initialSavedIds}
       />
     </main>
   );
