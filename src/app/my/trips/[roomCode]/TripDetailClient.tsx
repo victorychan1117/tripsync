@@ -7,7 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Calendar, Users, ArrowLeft, Copy, Check, Clock,
   Lock, Map, Plus, Navigation, GripVertical, UserCircle2,
-  Plane, Trash2, LogOut, ChevronDown, Loader2, Info,
+  Plane, Trash2, LogOut, ChevronDown, Loader2, Info, Globe, EyeOff,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
@@ -47,7 +47,8 @@ interface Member {
 interface Room {
   id: string; title: string; destination: string | null;
   country_code: string; start_date: string | null; end_date: string | null;
-  is_locked: boolean; marker_count: number; member_count: number;
+  is_locked: boolean; is_public: boolean;
+  marker_count: number; member_count: number;
   created_at: string; trip_members: Member[];
 }
 
@@ -262,6 +263,8 @@ export default function TripDetailClient({
   const [showDangerZone,     setShowDangerZone]     = useState(false);
   const [actionLoading,      setActionLoading]      = useState(false);
   const [toastMsg,           setToastMsg]           = useState<string | null>(null);
+  const [isPublic,           setIsPublic]           = useState(room.is_public);
+  const [toggleLoading,      setToggleLoading]      = useState(false);
 
   const flag     = FLAG[room.country_code] ?? '🌐';
   const dest     = cleanDest(room.destination);
@@ -285,6 +288,26 @@ export default function TripDetailClient({
   const showToast = (msg: string) => {
     setToastMsg(msg);
     setTimeout(() => setToastMsg(null), 2500);
+  };
+
+  // ── 공개/비공개 토글 ───────────────────────────────────────────────
+  const handleTogglePublic = async () => {
+    setToggleLoading(true);
+    try {
+      const supabase = createClient();
+      const next = !isPublic;
+      const { error } = await supabase
+        .from('trip_rooms')
+        .update({ is_public: next })
+        .eq('id', room.id);
+      if (error) throw error;
+      setIsPublic(next);
+      showToast(next ? '여행을 공개했어요. Explore에 노출돼요.' : '여행을 비공개로 변경했어요.');
+    } catch {
+      showToast('설정 변경에 실패했어요.');
+    } finally {
+      setToggleLoading(false);
+    }
   };
 
   // ── 여행 삭제 ──────────────────────────────────────────────────────
@@ -342,6 +365,11 @@ export default function TripDetailClient({
                     {room.title}
                   </h1>
                   {room.is_locked && <Lock size={14} className="text-white/60 shrink-0 mt-0.5" />}
+                  {isPublic && (
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-white/20 text-white/90 shrink-0">
+                      공개
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5">
                   {dest && (
@@ -582,17 +610,62 @@ export default function TripDetailClient({
                       transition={{ duration: 0.2 }}
                       className="overflow-hidden"
                     >
-                      <div className="pt-3 mt-3 border-t border-slate-100">
-                        <p className="text-[11px] text-slate-400 mb-3 leading-relaxed">
-                          여행 일지를 삭제하면 모든 장소와 멤버 정보가 영구적으로 사라져요.
-                        </p>
-                        <button
-                          onClick={() => setShowDeleteConfirm(true)}
-                          className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors"
-                        >
-                          <Trash2 size={14} />
-                          여행 삭제하기
-                        </button>
+                      <div className="pt-3 mt-3 border-t border-slate-100 space-y-3">
+                        {/* 공개/비공개 토글 */}
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            {isPublic
+                              ? <Globe size={14} className="text-violet-500" />
+                              : <EyeOff size={14} className="text-slate-400" />
+                            }
+                            <div>
+                              <p className="text-[12px] font-bold text-slate-700">
+                                {isPublic ? '공개 여행' : '비공개 여행'}
+                              </p>
+                              <p className="text-[10px] text-slate-400 leading-tight">
+                                {isPublic ? 'Explore 페이지에 노출돼요' : '나와 동행만 볼 수 있어요'}
+                              </p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={handleTogglePublic}
+                            disabled={toggleLoading}
+                            className={cn(
+                              'w-10 h-[22px] rounded-full relative transition-colors duration-200 shrink-0 disabled:opacity-60',
+                              isPublic ? 'bg-violet-500' : 'bg-slate-200',
+                            )}
+                          >
+                            <span className={cn(
+                              'absolute top-[3px] w-4 h-4 rounded-full bg-white shadow-sm transition-transform duration-200',
+                              isPublic ? 'translate-x-5' : 'translate-x-[3px]',
+                            )} />
+                          </button>
+                        </div>
+
+                        {/* 공개된 경우 — Explore 링크 */}
+                        {isPublic && (
+                          <Link
+                            href={`/t/${room.id}`}
+                            target="_blank"
+                            className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl text-[11px] font-bold text-violet-600 bg-violet-50 hover:bg-violet-100 transition-colors"
+                          >
+                            <Globe size={11} />
+                            공개 일정 보기 →
+                          </Link>
+                        )}
+
+                        <div className="border-t border-slate-100 pt-3">
+                          <p className="text-[11px] text-slate-400 mb-2.5 leading-relaxed">
+                            여행 일지를 삭제하면 모든 장소와 멤버 정보가 영구적으로 사라져요.
+                          </p>
+                          <button
+                            onClick={() => setShowDeleteConfirm(true)}
+                            className="w-full flex items-center justify-center gap-2 py-2.5 rounded-2xl text-sm font-bold text-red-500 border border-red-200 bg-red-50 hover:bg-red-100 transition-colors"
+                          >
+                            <Trash2 size={14} />
+                            여행 삭제하기
+                          </button>
+                        </div>
                       </div>
                     </motion.div>
                   )}
