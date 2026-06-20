@@ -221,20 +221,18 @@ export default function Navbar() {
     <>
       <header
         style={{
-          position:       'fixed',
+          position:       'sticky',
           top:            0,
-          left:           0,
-          right:          0,
           zIndex:         100,
           padding:        '0 5vw',
           height:         64,
           display:        'flex',
           alignItems:     'center',
           justifyContent: 'space-between',
-          backdropFilter: scrolled ? 'blur(16px)' : 'none',
-          background:     scrolled ? 'rgba(255,255,255,0.88)' : 'transparent',
-          borderBottom:   scrolled ? '1px solid rgba(0,0,0,0.06)' : 'none',
-          transition:     'background 0.3s ease, border 0.3s ease, backdrop-filter 0.3s ease',
+          backdropFilter: scrolled ? 'blur(16px)' : 'blur(8px)',
+          background:     scrolled ? 'rgba(255,255,255,0.92)' : 'rgba(255,255,255,0.75)',
+          borderBottom:   '1px solid rgba(0,0,0,0.06)',
+          transition:     'background 0.3s ease, backdrop-filter 0.3s ease',
         }}
       >
         {/* 로고 */}
