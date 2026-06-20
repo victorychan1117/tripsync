@@ -23,16 +23,19 @@ interface Props {
   centerLat:      number;
   centerLng:      number;
   onCursorMove?:  (lat: number, lng: number) => void;
+  previewMarker?: { lat: number; lng: number; name: string } | null;
 }
 
 export default function MapCanvas({
   markers, selectedId, onSelectMarker,
   mapConfig, centerLat, centerLng, onCursorMove,
+  previewMarker,
 }: Props) {
-  const containerRef = useRef<HTMLDivElement>(null);
-  const mapRef       = useRef<any>(null);
-  const markerRefs   = useRef<Map<number, any>>(new Map());
-  const polylineRefs = useRef<any[]>([]);
+  const containerRef    = useRef<HTMLDivElement>(null);
+  const mapRef          = useRef<any>(null);
+  const markerRefs      = useRef<Map<number, any>>(new Map());
+  const polylineRefs    = useRef<any[]>([]);
+  const previewRef      = useRef<any>(null);
 
   // ── 지도 초기화 ─────────────────────────────────────────────────
   useEffect(() => {
@@ -142,6 +145,39 @@ export default function MapCanvas({
       }
     });
   }, [markers, mapConfig.renderer]);
+
+  // ── 검색 결과 hover 프리뷰 마커 ─────────────────────────────────
+  useEffect(() => {
+    if (!mapRef.current) return;
+
+    // 기존 프리뷰 마커 제거
+    if (previewRef.current) {
+      if (mapConfig.renderer === 'KAKAO') previewRef.current.setMap(null);
+      else previewRef.current.map = null;
+      previewRef.current = null;
+    }
+
+    if (!previewMarker) return;
+
+    const PREVIEW_COLOR = '#F97316'; // 오렌지 — 실제 마커(인디고)와 구별
+    if (mapConfig.renderer === 'KAKAO') {
+      previewRef.current = createKakaoMarker(
+        mapRef.current, previewMarker.lat, previewMarker.lng, '?', PREVIEW_COLOR,
+      );
+      const kakao = (window as any).kakao;
+      if (kakao?.maps) {
+        mapRef.current.panTo(new kakao.maps.LatLng(previewMarker.lat, previewMarker.lng));
+      }
+    } else {
+      previewRef.current = createGoogleMarker(
+        mapRef.current, previewMarker.lat, previewMarker.lng, '?', PREVIEW_COLOR,
+      );
+      const google = (window as any).google;
+      if (google?.maps) {
+        mapRef.current.panTo({ lat: previewMarker.lat, lng: previewMarker.lng });
+      }
+    }
+  }, [previewMarker, mapConfig.renderer]);
 
   // ── 선택 마커 강조 ───────────────────────────────────────────────
   useEffect(() => {

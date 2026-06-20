@@ -41,6 +41,7 @@ async function checkDbCache(from: Coord, to: Coord, mode: TransportMode): Promis
     .maybeSingle();
 
   if (!data) return null;
+  if (data.duration_sec === 0 && data.distance_m === 0) return null;
 
   return {
     durationSec:  data.duration_sec,
@@ -123,8 +124,10 @@ async function callKakaoMobility(from: Coord, to: Coord): Promise<RouteSegment> 
   const data = await response.json();
 
   const route = data.routes?.[0];
-  const durationSec = route?.summary?.duration ?? 0;
-  const distanceM   = route?.summary?.distance ?? 0;
+  if (!route) throw new Error('Kakao: no route found');
+  const durationSec = route.summary?.duration ?? 0;
+  const distanceM   = route.summary?.distance ?? 0;
+  if (durationSec === 0 && distanceM === 0) throw new Error('Kakao: empty route data');
 
   return {
     durationSec,
@@ -182,8 +185,10 @@ export async function calculateRoutes(req: RouteRequest): Promise<RouteSegment[]
   // ── 3단계: 외부 API 호출 ─────────────────────────────────────
   const isDomestic = req.countryCode === 'KR';
 
-  if (!isDomestic && stillNeedApi.length > 1) {
-    // Google: waypoints 묶어서 1회 호출
+  const isConsecutive = stillNeedApi.every((idx, j) => j === 0 || idx === stillNeedApi[j - 1] + 1);
+
+  if (!isDomestic && stillNeedApi.length > 1 && isConsecutive) {
+    // Google: waypoints 묶어서 1회 호출 (연속 구간일 때만)
     const batchMarkers = [
       req.markers[stillNeedApi[0]],
       ...stillNeedApi.map(i => req.markers[i + 1]),
@@ -195,7 +200,9 @@ export async function calculateRoutes(req: RouteRequest): Promise<RouteSegment[]
         results[i] = apiResults[j];
         const key  = makeCacheKey(req.markers[i], req.markers[i + 1], req.mode);
         memCache.set(key, apiResults[j]);
-        await saveDbCache(req.markers[i], req.markers[i + 1], req.mode, apiResults[j], 'google');
+        if (apiResults[j].durationSec > 0 || apiResults[j].distanceM > 0) {
+          await saveDbCache(req.markers[i], req.markers[i + 1], req.mode, apiResults[j], 'google');
+        }
       }
     } catch (err) {
       console.error('Google Routes API error:', err);
@@ -214,7 +221,9 @@ export async function calculateRoutes(req: RouteRequest): Promise<RouteSegment[]
           results[i] = segment;
           const key  = makeCacheKey(from, to, req.mode);
           memCache.set(key, segment);
-          await saveDbCache(from, to, req.mode, segment, isDomestic ? 'kakao' : 'google');
+          if (segment.durationSec > 0 || segment.distanceM > 0) {
+            await saveDbCache(from, to, req.mode, segment, isDomestic ? 'kakao' : 'google');
+          }
         } catch (err) {
           console.error(`Route calc failed for segment ${i}:`, err);
         }

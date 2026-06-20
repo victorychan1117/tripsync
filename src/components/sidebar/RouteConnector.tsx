@@ -11,6 +11,7 @@ interface Props {
 }
 
 export default function RouteConnector({ segment, index, affiliate }: Props) {
+  if (segment.durationSec === 0 && segment.distanceM === 0) return null;
   const handleAffiliateClick = () => {
     if (affiliate) {
       trackAffiliateClick(affiliate.partner, '', '', undefined);
@@ -26,9 +27,9 @@ export default function RouteConnector({ segment, index, affiliate }: Props) {
 
       {/* 구간 정보 박스 */}
       <div className="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-[7px] flex items-center gap-2 my-0.5">
-        <Car size={13} className="text-slate-500 shrink-0" />
-        <span className="text-xs font-semibold text-slate-700">
-          {segment.durationText}
+        <Car size={13} className="text-slate-400 shrink-0" />
+        <span className="text-xs font-semibold text-slate-600">
+          차로 {segment.durationText}
         </span>
         <span className="text-[11px] text-slate-400">
           · {segment.distanceText}

@@ -131,6 +131,7 @@ export const useMarkerStore = create<MarkerStore>((set, get) => ({
         markers: new Map(state.markers).set(id, prev),
       }));
       console.error('updateMarker error:', error);
+      throw error;
     }
   },
 

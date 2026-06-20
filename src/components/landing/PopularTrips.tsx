@@ -1,5 +1,6 @@
 'use client';
 import Image from 'next/image';
+import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { Star, Eye, MapPin } from 'lucide-react';
 
@@ -288,23 +289,26 @@ export default function PopularTrips() {
         transition={{ duration: 0.4, delay: 0.3 }}
         style={{ textAlign: 'center', marginTop: 'clamp(32px, 4vh, 48px)' }}
       >
-        <motion.button
-          whileHover={{ y: -1, borderColor: '#6366F1', color: '#6366F1' }}
-          transition={{ duration: 0.15 }}
-          style={{
-            padding:      '12px 32px',
-            borderRadius: 14,
-            border:       '1.5px solid #e2e8f0',
-            background:   '#ffffff',
-            fontSize:     14,
-            fontWeight:   700,
-            color:        '#374151',
-            cursor:       'pointer',
-            boxShadow:    '0 2px 8px rgba(0,0,0,0.05)',
-          }}
-        >
-          더 많은 일정 보기 →
-        </motion.button>
+        <Link href="/explore">
+          <motion.span
+            whileHover={{ y: -1, borderColor: '#6366F1', color: '#6366F1' }}
+            transition={{ duration: 0.15 }}
+            style={{
+              display:      'inline-block',
+              padding:      '12px 32px',
+              borderRadius: 14,
+              border:       '1.5px solid #e2e8f0',
+              background:   '#ffffff',
+              fontSize:     14,
+              fontWeight:   700,
+              color:        '#374151',
+              cursor:       'pointer',
+              boxShadow:    '0 2px 8px rgba(0,0,0,0.05)',
+            }}
+          >
+            더 많은 일정 보기 →
+          </motion.span>
+        </Link>
       </motion.div>
     </section>
   );
