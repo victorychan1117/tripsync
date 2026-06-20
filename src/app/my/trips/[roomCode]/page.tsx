@@ -26,7 +26,7 @@ export default async function TripDetailPage({ params }: Props) {
   // 멤버 확인
   const { data: member } = await service
     .from('trip_members')
-    .select('role')
+    .select('id, role')
     .eq('room_id', roomCode)
     .eq('user_id', dbUser.id)
     .single();
@@ -61,6 +61,7 @@ export default async function TripDetailPage({ params }: Props) {
       room={room}
       markers={markers ?? []}
       myRole={member.role}
+      myMemberId={member.id}
     />
   );
 }
