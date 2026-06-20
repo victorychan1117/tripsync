@@ -1,99 +1,142 @@
 -- ════════════════════════════════════════════════════════════════════
 -- 004_owner_only_rls.sql
--- 권한 개선: markers 쓰기를 owner 전용으로 변경 +
---            trip_members DELETE 정책 추가 (나가기/강퇴)
+-- Supabase Dashboard › SQL Editor 에 그대로 붙여넣기 가능
+-- DROP IF EXISTS 전처리로 멱등 실행 (중복 실행 안전)
+--
+-- 002_rls_policies.sql 대비 변경사항:
+--   1. markers_write 삭제 → owner 전용 3개 정책으로 교체
+--   2. trip_members DELETE 정책 신규 추가 (나가기/강퇴)
+--   3. trip_members SELECT 교체 — 같은 방 멤버 전체 조회 허용
+--      (자기참조 재귀 버그를 SECURITY DEFINER 함수로 방지)
 -- ════════════════════════════════════════════════════════════════════
 
--- ── 1. markers 쓰기 정책 교체 ────────────────────────────────────────
+
+-- ══════════════════════════════════════════════════════════════════
+-- STEP 1  재귀 방지 Helper 함수
+-- ══════════════════════════════════════════════════════════════════
+-- trip_members SELECT 정책이 trip_members를 직접 서브쿼리하면
+-- PostgreSQL RLS가 무한 재귀를 일으킴.
+-- SECURITY DEFINER 함수는 함수 소유자(postgres) 권한으로 실행되어
+-- RLS 를 우회하므로 재귀가 발생하지 않음.
+CREATE OR REPLACE FUNCTION public.is_room_member(p_room_id TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+SECURITY DEFINER
+STABLE
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM   trip_members
+    WHERE  room_id = p_room_id
+      AND  user_id = (SELECT id FROM users WHERE auth_id = auth.uid())
+  );
+$$;
+
+
+-- ══════════════════════════════════════════════════════════════════
+-- STEP 2  markers 쓰기 정책 교체
+-- ══════════════════════════════════════════════════════════════════
+-- 기존 markers_write: role IN ('owner', 'editor') → editor도 쓰기 가능
+-- 변경: role = 'owner' 만 INSERT / UPDATE / DELETE 허용
+--       is_locked = FALSE 조건 유지 (잠긴 방은 owner도 편집 불가)
 --
--- 기존: markers_write → role IN ('owner', 'editor') 모두 허용
--- 변경: owner만 INSERT / UPDATE / DELETE 가능
---       is_locked = FALSE 조건은 유지 (잠긴 방은 owner도 편집 불가)
--- ─────────────────────────────────────────────────────────────────────
+-- 주의: markers_select (002) 는 그대로 유지 — 멤버 전원 조회 가능
+-- ──────────────────────────────────────────────────────────────────
+DROP POLICY IF EXISTS "markers_write"        ON markers;
+DROP POLICY IF EXISTS "markers_insert_owner" ON markers;
+DROP POLICY IF EXISTS "markers_update_owner" ON markers;
+DROP POLICY IF EXISTS "markers_delete_owner" ON markers;
 
-DROP POLICY IF EXISTS "markers_write" ON markers;
-
--- 공통 owner 체크 subquery (세 정책에서 동일하게 사용)
--- : 현재 유저가 해당 방의 role='owner' 멤버이고, 방이 잠겨 있지 않아야 함
-
+-- INSERT: owner만, 잠기지 않은 방에서만
 CREATE POLICY "markers_insert_owner" ON markers
   FOR INSERT WITH CHECK (
     EXISTS (
       SELECT 1
       FROM   trip_rooms   tr
       JOIN   trip_members tm ON tm.room_id = tr.id
-      WHERE  tr.id          = markers.room_id
-        AND  tr.is_locked   = FALSE
-        AND  tm.role        = 'owner'
-        AND  tm.user_id     = (SELECT id FROM users WHERE auth_id = auth.uid())
+      WHERE  tr.id        = markers.room_id
+        AND  tr.is_locked = FALSE
+        AND  tm.role      = 'owner'
+        AND  tm.user_id   = (SELECT id FROM users WHERE auth_id = auth.uid())
     )
   );
 
+-- UPDATE: owner만, 잠기지 않은 방에서만
 CREATE POLICY "markers_update_owner" ON markers
   FOR UPDATE USING (
     EXISTS (
       SELECT 1
       FROM   trip_rooms   tr
       JOIN   trip_members tm ON tm.room_id = tr.id
-      WHERE  tr.id          = markers.room_id
-        AND  tr.is_locked   = FALSE
-        AND  tm.role        = 'owner'
-        AND  tm.user_id     = (SELECT id FROM users WHERE auth_id = auth.uid())
+      WHERE  tr.id        = markers.room_id
+        AND  tr.is_locked = FALSE
+        AND  tm.role      = 'owner'
+        AND  tm.user_id   = (SELECT id FROM users WHERE auth_id = auth.uid())
     )
   );
 
+-- DELETE: owner만, 잠기지 않은 방에서만
+--
+-- ⚠️  여행 삭제 시 주의:
+--   trip_rooms DELETE → CASCADE가 markers를 자동 삭제하므로
+--   잠긴 여행이어도 trip_rooms 삭제만 하면 문제 없음.
+--   단, 앱 코드가 markers를 먼저 명시적으로 DELETE하면
+--   is_locked = TRUE 일 때 이 정책에 막힘 → CASCADE에 위임 권장.
 CREATE POLICY "markers_delete_owner" ON markers
   FOR DELETE USING (
     EXISTS (
       SELECT 1
       FROM   trip_rooms   tr
       JOIN   trip_members tm ON tm.room_id = tr.id
-      WHERE  tr.id          = markers.room_id
-        AND  tr.is_locked   = FALSE
-        AND  tm.role        = 'owner'
-        AND  tm.user_id     = (SELECT id FROM users WHERE auth_id = auth.uid())
+      WHERE  tr.id        = markers.room_id
+        AND  tr.is_locked = FALSE
+        AND  tm.role      = 'owner'
+        AND  tm.user_id   = (SELECT id FROM users WHERE auth_id = auth.uid())
     )
   );
 
 
--- ── 2. trip_members DELETE 정책 추가 ─────────────────────────────────
---
--- 기존 파일에 DELETE 정책이 누락되어 있어 나가기/강퇴 불가.
+-- ══════════════════════════════════════════════════════════════════
+-- STEP 3  trip_members DELETE 정책 추가
+-- ══════════════════════════════════════════════════════════════════
+-- 002에 DELETE 정책이 없어 나가기/강퇴 불가 상태였음.
 --
 -- 허용 케이스:
---   A) 본인이 non-owner 멤버인 경우 → 본인 row 삭제 (여행 나가기)
---   B) 방장인 경우              → 같은 방의 모든 row 삭제 가능 (강퇴 + 방 삭제 연쇄)
+--   A) 본인이 non-owner 멤버 → 자신의 row 삭제 (여행 나가기)
+--   B) 방장 → 같은 방의 모든 row 삭제 (강퇴 + 여행 삭제 cascade 보조)
 --
--- 주의: 방장(role='owner')은 A 조건을 충족하지 않으므로,
---       본인 탈퇴는 B 경로(방장 권한)로만 가능.
---       → 방을 삭제할 때 CASCADE가 처리하거나, 코드에서 room 삭제 전에
---         members를 일괄 삭제할 때 B 조건으로 허용됨.
--- ─────────────────────────────────────────────────────────────────────
+-- owner는 A 조건(role != 'owner')을 통과하지 못하므로 자기 탈퇴 불가.
+-- 여행 삭제는 trip_rooms DELETE → CASCADE 로 처리됨.
+DROP POLICY IF EXISTS "trip_members_delete" ON trip_members;
 
 CREATE POLICY "trip_members_delete" ON trip_members
   FOR DELETE USING (
-    -- A) 본인 탈퇴 (방장은 자신을 직접 탈퇴할 수 없음 — 방 삭제로만 해결)
+    -- A) 비-owner 본인 나가기
     (
       user_id = (SELECT id FROM users WHERE auth_id = auth.uid())
       AND role != 'owner'
     )
-    -- B) 방장이 해당 방의 멤버를 삭제 (강퇴 또는 방 삭제 전 일괄 제거)
+    -- B) 방장이 해당 방 멤버 삭제 (강퇴 또는 여행 삭제 전 일괄 제거)
     OR EXISTS (
-      SELECT 1
-      FROM   trip_rooms
-      WHERE  id       = trip_members.room_id
-        AND  owner_id = (SELECT id FROM users WHERE auth_id = auth.uid())
+      SELECT 1 FROM trip_rooms
+      WHERE id       = trip_members.room_id
+        AND owner_id = (SELECT id FROM users WHERE auth_id = auth.uid())
     )
   );
 
 
--- ── 3. (선택) trip_members SELECT 정책 보완 ──────────────────────────
+-- ══════════════════════════════════════════════════════════════════
+-- STEP 4  trip_members SELECT 정책 교체
+-- ══════════════════════════════════════════════════════════════════
+-- 002 문제:
+--   SELECT USING (본인 row OR 방장 OR 공개방)
+--   → 동행(viewer/editor)은 자신의 row만 볼 수 있고
+--     같은 방 다른 멤버 목록을 조회할 수 없음.
 --
--- 기존 정책은 "본인 row 또는 방장" 만 조회 가능.
--- 같은 방 멤버라면 멤버 목록을 볼 수 있어야 하므로 추가.
--- 기존 "trip_members_select" 를 교체.
--- ─────────────────────────────────────────────────────────────────────
-
+-- 수정:
+--   같은 방의 인증 멤버라면 멤버 목록 전체 조회 가능.
+--   is_room_member() SECURITY DEFINER 함수로 자기참조 재귀 방지.
 DROP POLICY IF EXISTS "trip_members_select" ON trip_members;
 
 CREATE POLICY "trip_members_select" ON trip_members
@@ -102,18 +145,12 @@ CREATE POLICY "trip_members_select" ON trip_members
     user_id = (SELECT id FROM users WHERE auth_id = auth.uid())
     -- 게스트 세션
     OR guest_session = current_setting('app.guest_session', TRUE)
-    -- 같은 방의 다른 멤버 (방장 포함)
+    -- 같은 방의 인증 멤버 전체 허용 (SECURITY DEFINER → 재귀 없음)
+    OR public.is_room_member(trip_members.room_id)
+    -- 공개 방 멤버 목록 공개
     OR EXISTS (
-      SELECT 1
-      FROM   trip_members self_tm
-      WHERE  self_tm.room_id = trip_members.room_id
-        AND  self_tm.user_id = (SELECT id FROM users WHERE auth_id = auth.uid())
-    )
-    -- 공개 방
-    OR EXISTS (
-      SELECT 1
-      FROM   trip_rooms tr
-      WHERE  tr.id        = trip_members.room_id
-        AND  tr.is_public = TRUE
+      SELECT 1 FROM trip_rooms
+      WHERE id        = trip_members.room_id
+        AND is_public = TRUE
     )
   );
