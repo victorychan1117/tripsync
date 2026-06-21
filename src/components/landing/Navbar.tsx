@@ -2,7 +2,8 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Navigation, LogOut, User, Mail, Calendar, X, BookOpen, Heart, Bell } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
+import { LogOut, User, Mail, Calendar, X, BookOpen, Heart, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { APP_NAME } from '@/lib/config/site';
 import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
@@ -240,17 +241,8 @@ export default function Navbar() {
         }}
       >
         {/* 로고 */}
-        <Link href="/" style={{ display: 'flex', alignItems: 'center', gap: 8, textDecoration: 'none' }}>
-          <div style={{
-            width: 34, height: 34, borderRadius: 10,
-            background: 'linear-gradient(135deg, #6366F1, #8B5CF6)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-          }}>
-            <Navigation size={17} color="white" />
-          </div>
-          <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            {APP_NAME}
-          </span>
+        <Link href="/" className="group text-decoration-none" style={{ textDecoration: 'none' }}>
+          <BrandLogo size="sm" />
         </Link>
 
         {/* 우측 */}

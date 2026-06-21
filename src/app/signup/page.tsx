@@ -2,8 +2,8 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import { APP_NAME } from '@/lib/config/site';
-import { Navigation, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
+import BrandLogo from '@/components/brand/BrandLogo';
+import { Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
 function SignupForm() {
@@ -93,11 +93,8 @@ function SignupForm() {
 
         {/* 헤더 */}
         <div className="bg-gradient-to-br from-brand-500 to-violet-500 px-8 pt-8 pb-8 text-center">
-          <div className="flex items-center justify-center gap-2.5 mb-2">
-            <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
-              <Navigation size={20} className="text-white" />
-            </div>
-            <span className="text-2xl font-extrabold text-white">{APP_NAME}</span>
+          <div className="mb-2 flex justify-center">
+            <BrandLogo size="md" variant="on-gradient" />
           </div>
           <p className="text-white/75 text-sm">회원가입</p>
         </div>

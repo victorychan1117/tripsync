@@ -6,8 +6,8 @@ const OG_IMAGE = { url: '/landing/hero.png', width: 1672, height: 941, alt: `${A
 
 export const metadata: Metadata = {
   title: {
-    default:  `${APP_NAME} | 함께 만드는 여행 일정`,
-    template: `%s | ${APP_NAME}`,
+    default:  `${APP_NAME} - 함께 만드는 여행 일정`,
+    template: `%s - ${APP_NAME}`,
   },
   description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행을 참고해보세요.',
   keywords: ['여행 일정', '여행 계획', '가보자고', 'gabojago', '여행 코스', '일본 여행', '국내 여행', '여행 공유', '여행 플래너'],
@@ -16,13 +16,13 @@ export const metadata: Metadata = {
     siteName:    APP_NAME,
     locale:      'ko_KR',
     type:        'website',
-    title:       `${APP_NAME} | 함께 만드는 여행 일정`,
+    title:       `${APP_NAME} - 함께 만드는 여행 일정`,
     description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행을 참고해보세요.',
     images:      [OG_IMAGE],
   },
   twitter: {
     card:        'summary_large_image',
-    title:       `${APP_NAME} | 함께 만드는 여행 일정`,
+    title:       `${APP_NAME} - 함께 만드는 여행 일정`,
     description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행을 참고해보세요.',
     images:      ['/landing/hero.png'],
   },
