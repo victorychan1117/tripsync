@@ -10,7 +10,7 @@ export const metadata: Metadata = {
     template: `%s | ${APP_NAME}`,
   },
   description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행을 참고해보세요.',
-  keywords: ['여행 일정', '여행 계획', '가보자Go', 'gabojago', '여행 코스', '일본 여행', '국내 여행', '여행 공유', '여행 플래너'],
+  keywords: ['여행 일정', '여행 계획', '가보자고', 'gabojago', '여행 코스', '일본 여행', '국내 여행', '여행 공유', '여행 플래너'],
   metadataBase: new URL(APP_URL),
   openGraph: {
     siteName:    APP_NAME,

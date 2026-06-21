@@ -1,6 +1,6 @@
 -- ════════════════════════════════════════════════════════════════════
 -- 016_rebrand_gabojago.sql
--- SEO title 접미사 TripSync → 가보자Go
+-- SEO title 접미사 TripSync → 가보자고
 -- ════════════════════════════════════════════════════════════════════
 
 CREATE OR REPLACE FUNCTION public.set_trip_public(
@@ -48,7 +48,7 @@ BEGIN
 
     UPDATE trip_rooms
     SET
-      seo_title       = v_room.title || ' | 가보자Go',
+      seo_title       = v_room.title || ' | 가보자고',
       seo_description = COALESCE(v_room.destination, '') || ' ' ||
                         v_room.nights || '박 ' || (v_room.nights + 1) || '일 여행 일정. ' ||
                         v_room.marker_count || '개 장소를 지도에서 바로 확인하세요.'
@@ -80,7 +80,7 @@ BEGIN
 
     UPDATE trip_rooms
     SET
-      seo_title       = NEW.title || ' | 가보자Go',
+      seo_title       = NEW.title || ' | 가보자고',
       seo_description = COALESCE(NEW.destination, '') || ' ' ||
                         NEW.nights || '박 ' || (NEW.nights + 1) || '일 여행 일정. ' ||
                         NEW.marker_count || '개 장소를 지도에서 바로 확인하세요.'
