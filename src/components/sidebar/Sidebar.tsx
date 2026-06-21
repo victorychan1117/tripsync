@@ -6,6 +6,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { cn } from '@/lib/utils';
+import { APP_URL } from '@/lib/config/site';
 import PlaceCard      from './PlaceCard';
 import RouteConnector from './RouteConnector';
 import {
@@ -195,7 +196,7 @@ export default function Sidebar({
 
   const handleCopyCode = useCallback(async () => {
     try {
-      await navigator.clipboard.writeText(`${process.env.NEXT_PUBLIC_APP_URL}/room/${room.id}`);
+      await navigator.clipboard.writeText(`${APP_URL}/room/${room.id}`);
     } catch {}
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

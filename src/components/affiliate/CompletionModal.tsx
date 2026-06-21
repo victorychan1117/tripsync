@@ -147,7 +147,7 @@ export default function CompletionModal({
             </div>
 
             {/* ── 푸터 ── */}
-            <div className="px-5 pb-6 pt-2">
+            <div className="px-5 pt-2" style={{ paddingBottom: 'max(24px, env(safe-area-inset-bottom))' }}>
               <button
                 onClick={dismiss}
                 className="w-full py-3 text-[13px] font-semibold text-slate-400 hover:text-slate-600 transition-colors rounded-2xl hover:bg-slate-50"

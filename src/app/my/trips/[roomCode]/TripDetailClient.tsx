@@ -12,9 +12,12 @@ import {
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
+import { getCountryGradient } from '@/lib/trip/coverImage';
+import { APP_URL } from '@/lib/config/site';
 import type { TripRoom } from '@/lib/supabase/types';
 import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 import CompletionModal from '@/components/affiliate/CompletionModal';
+import CoverImageUpload from '@/components/trip/CoverImageUpload';
 
 // ─── 상수 ────────────────────────────────────────────────────────────
 const FLAG: Record<string, string> = {
@@ -53,6 +56,7 @@ interface Room {
   country_code: string; start_date: string | null; end_date: string | null;
   is_locked: boolean; is_public: boolean;
   marker_count: number; member_count: number;
+  cover_image_url: string | null;
   created_at: string; trip_members: Member[];
 }
 
@@ -269,8 +273,10 @@ export default function TripDetailClient({
   const [toastMsg,           setToastMsg]           = useState<string | null>(null);
   const [isPublic,           setIsPublic]           = useState(room.is_public);
   const [toggleLoading,      setToggleLoading]      = useState(false);
+  const [coverImageUrl,      setCoverImageUrl]      = useState(room.cover_image_url);
 
   const flag     = FLAG[room.country_code] ?? '🌐';
+  const [g1, g2] = getCountryGradient(room.country_code);
   const dest     = cleanDest(room.destination);
   const dday     = getDday(room.start_date);
   const days     = Array.from(new Set(markers.map(m => m.day_number))).sort((a, b) => a - b);
@@ -297,7 +303,7 @@ export default function TripDetailClient({
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(
-      `${process.env.NEXT_PUBLIC_APP_URL}/room/${room.id}`
+      `${APP_URL}/room/${room.id}`
     );
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
@@ -314,13 +320,14 @@ export default function TripDetailClient({
     try {
       const supabase = createClient();
       const next = !isPublic;
-      const { error } = await supabase
-        .from('trip_rooms')
-        .update({ is_public: next })
-        .eq('id', room.id);
+      const { data, error } = await supabase.rpc('set_trip_public', {
+        p_room_id:   room.id,
+        p_is_public: next,
+      });
       if (error) throw error;
-      setIsPublic(next);
-      showToast(next ? '여행을 공개했어요. Explore에 노출돼요.' : '여행을 비공개로 변경했어요.');
+      const updated = data as boolean;
+      setIsPublic(updated);
+      showToast(updated ? '여행을 공개했어요. Explore에 노출돼요.' : '여행을 비공개로 변경했어요.');
     } catch {
       showToast('설정 변경에 실패했어요.');
     } finally {
@@ -329,19 +336,20 @@ export default function TripDetailClient({
   };
 
   // ── 여행 삭제 ──────────────────────────────────────────────────────
+  // markers / trip_members는 ON DELETE CASCADE이므로 trip_rooms 삭제 하나로 충분.
+  // 명시적 선삭제는 is_locked=true 방에서 RLS에 막히므로 제거.
   const handleDeleteTrip = async () => {
     setActionLoading(true);
     try {
       const supabase = createClient();
-      await supabase.from('markers').delete().eq('room_id', room.id);
-      await supabase.from('trip_members').delete().eq('room_id', room.id);
-      const { error } = await supabase.from('trip_rooms').delete().eq('id', room.id);
+      const { error } = await supabase.rpc('delete_trip_room', { p_room_id: room.id });
       if (error) throw error;
+      setShowDeleteConfirm(false);
       showToast('여행 일지를 삭제했어요.');
       setTimeout(() => router.push('/my/trips'), 1000);
     } catch {
       setActionLoading(false);
-      setShowDeleteConfirm(false);
+      showToast('여행 삭제에 실패했어요.');
     }
   };
 
@@ -356,7 +364,7 @@ export default function TripDetailClient({
       setTimeout(() => router.push('/my/trips'), 1000);
     } catch {
       setActionLoading(false);
-      setShowLeaveConfirm(false);
+      showToast('여행 나가기에 실패했어요.');
     }
   };
 
@@ -364,15 +372,38 @@ export default function TripDetailClient({
     <div className="min-h-screen bg-[#F6F4FF]">
 
       {/* ── 헤더 ─────────────────────────────────────────────── */}
-      <div className="bg-gradient-to-br from-violet-500 via-indigo-500 to-violet-600 px-4 sm:px-6 lg:px-8 pt-5 pb-6">
-        <div className="max-w-5xl mx-auto">
-          <Link
-            href="/my/trips"
-            className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold mb-5 transition-colors duration-150"
-          >
-            <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform duration-150" />
-            내 여행 일지
-          </Link>
+      <div className="relative px-4 sm:px-6 lg:px-8 pt-5 pb-6 overflow-hidden">
+        {coverImageUrl ? (
+          <>
+            <img src={coverImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65" />
+          </>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}
+          />
+        )}
+        <div className="relative z-[1] max-w-5xl mx-auto">
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <Link
+              href="/my/trips"
+              className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold transition-colors duration-150"
+            >
+              <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform duration-150" />
+              내 여행 일지
+            </Link>
+            {isOwner && (
+              <CoverImageUpload
+                roomId={room.id}
+                onSuccess={url => {
+                  setCoverImageUrl(url);
+                  showToast('커버 이미지가 변경됐어요.');
+                }}
+                onError={msg => showToast(msg)}
+              />
+            )}
+          </div>
 
           <div className="flex items-start justify-between gap-4 flex-wrap">
             <div className="flex items-start gap-4">
@@ -652,6 +683,27 @@ export default function TripDetailClient({
                       className="overflow-hidden"
                     >
                       <div className="pt-3 mt-3 border-t border-slate-100 space-y-3">
+                        {/* 커버 이미지 */}
+                        <div>
+                          <p className="text-[12px] font-bold text-slate-700 mb-2">커버 이미지</p>
+                          {coverImageUrl && (
+                            <img
+                              src={coverImageUrl}
+                              alt="커버 미리보기"
+                              className="w-full aspect-video object-cover rounded-xl mb-2 border border-slate-100"
+                            />
+                          )}
+                          <CoverImageUpload
+                            variant="settings"
+                            roomId={room.id}
+                            onSuccess={url => {
+                              setCoverImageUrl(url);
+                              showToast('커버 이미지가 변경됐어요.');
+                            }}
+                            onError={msg => showToast(msg)}
+                          />
+                        </div>
+
                         {/* 공개/비공개 토글 */}
                         <div className="flex items-center justify-between">
                           <div className="flex items-center gap-2">

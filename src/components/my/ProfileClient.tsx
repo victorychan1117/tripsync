@@ -247,7 +247,7 @@ export default function ProfileClient({ profile }: { profile: Profile }) {
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: 12 }}
             className={[
-              'fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap',
+              'fixed bottom-safe left-1/2 -translate-x-1/2 z-[200] text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap',
               toast.type === 'err' ? 'bg-red-500' : 'bg-slate-900',
             ].join(' ')}
           >

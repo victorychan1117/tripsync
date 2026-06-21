@@ -1,19 +1,30 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import { APP_URL } from '@/lib/config/site';
+
+const OG_IMAGE = { url: '/landing/hero.png', width: 1672, height: 941, alt: '여행 일지 — 함께 만드는 여행 일정' };
 
 export const metadata: Metadata = {
   title: {
-    default:  'TripSync — 실시간 협업 여행 플래너',
-    template: '%s | TripSync',
+    default:  '여행 일지 | 함께 만드는 여행 일정',
+    template: '%s | 여행 일지',
   },
-  description:
-    '여행 일정을 팀과 함께 실시간으로 만들어보세요. '
-    + '지도 위에 마커를 찍고 경로와 소요 시간을 즉시 확인합니다.',
-  metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL ?? 'https://tripsync.com'),
+  description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행 일지를 참고해보세요.',
+  keywords: ['여행 일정', '여행 계획', '여행 일지', '여행 코스', '일본 여행', '국내 여행', '여행 공유', '여행 플래너'],
+  metadataBase: new URL(APP_URL),
   openGraph: {
-    siteName: 'TripSync',
-    locale:   'ko_KR',
-    type:     'website',
+    siteName:    '여행 일지',
+    locale:      'ko_KR',
+    type:        'website',
+    title:       '여행 일지 | 함께 만드는 여행 일정',
+    description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행 일지를 참고해보세요.',
+    images:      [OG_IMAGE],
+  },
+  twitter: {
+    card:        'summary_large_image',
+    title:       '여행 일지 | 함께 만드는 여행 일정',
+    description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행 일지를 참고해보세요.',
+    images:      ['/landing/hero.png'],
   },
 };
 

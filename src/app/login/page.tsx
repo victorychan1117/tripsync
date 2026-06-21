@@ -14,7 +14,7 @@ function LoginForm() {
   const [email,    setEmail]    = useState('');
   const [password, setPassword] = useState('');
   const [showPw,   setShowPw]   = useState(false);
-  const [loading,  setLoading]  = useState<'google' | 'kakao' | 'email' | null>(null);
+  const [loading,  setLoading]  = useState<'google' | 'email' | null>(null);
   const [error,    setError]    = useState('');
 
   const handleGoogleLogin = async () => {
@@ -22,16 +22,6 @@ function LoginForm() {
     setError('');
     const { error } = await supabase.auth.signInWithOAuth({
       provider: 'google',
-      options:  { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}` },
-    });
-    if (error) { setError(error.message); setLoading(null); }
-  };
-
-  const handleKakaoLogin = async () => {
-    setLoading('kakao');
-    setError('');
-    const { error } = await supabase.auth.signInWithOAuth({
-      provider: 'kakao',
       options:  { redirectTo: `${window.location.origin}/auth/callback?redirect=${encodeURIComponent(redirect)}` },
     });
     if (error) { setError(error.message); setLoading(null); }
@@ -92,18 +82,6 @@ function LoginForm() {
                 </svg>
             }
             Google로 계속하기
-          </button>
-
-          <button
-            onClick={handleKakaoLogin}
-            disabled={!!loading}
-            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl bg-[#FEE500] font-semibold text-sm text-[#3C1E1E] hover:bg-[#f5dc00] disabled:opacity-50 transition-colors"
-          >
-            {loading === 'kakao'
-              ? <Loader2 size={18} className="animate-spin" />
-              : <span className="text-base">💬</span>
-            }
-            카카오로 계속하기
           </button>
 
           {/* 구분선 */}
@@ -173,8 +151,11 @@ function LoginForm() {
           </p>
 
           <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-            로그인 시 <span className="underline">이용약관</span>과{' '}
-            <span className="underline">개인정보처리방침</span>에 동의합니다
+            로그인 시{' '}
+            <Link href="/terms" className="underline hover:text-slate-600">이용약관</Link>
+            과{' '}
+            <Link href="/privacy" className="underline hover:text-slate-600">개인정보처리방침</Link>
+            에 동의합니다
           </p>
         </div>
       </div>

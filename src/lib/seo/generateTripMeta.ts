@@ -3,9 +3,8 @@
 // ════════════════════════════════════════════════════════════════════
 import type { Metadata } from 'next';
 import type { TripRoom, Marker } from '@/lib/supabase/types';
-
-const APP_URL  = process.env.NEXT_PUBLIC_APP_URL  ?? 'https://tripsync.com';
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME ?? 'TripSync';
+import { resolveOgImageUrl } from '@/lib/trip/coverImage';
+import { APP_URL, APP_NAME } from '@/lib/config/site';
 
 interface TripMetaInput {
   room:         TripRoom;
@@ -30,8 +29,7 @@ export function generateTripMeta(input: TripMetaInput): Metadata {
     + `${placeNames} 등 ${markers.length}개 장소를 지도에서 바로 확인하고 `
     + `내 일정으로 복사하세요.`;
 
-  const ogImageUrl = room.cover_image_url
-    ?? `${APP_URL}/api/og?roomId=${room.id}`;
+  const ogImageUrl = resolveOgImageUrl(room.cover_image_url);
 
   return {
     title,
@@ -78,61 +76,8 @@ export function generateTripMeta(input: TripMetaInput): Metadata {
   };
 }
 
-// ── JSON-LD 스키마 생성 (구글 리치 스니펫) ────────────────────────
-export function generateTripJsonLd(input: TripMetaInput): object {
-  const { room, markers, authorName, canonicalUrl } = input;
-
-  const dest     = room.destination ?? '여행지';
-  const duration = room.nights === 0
-    ? '당일치기'
-    : `${room.nights}박 ${room.nights + 1}일`;
-
-  // Day별 그룹핑
-  const dayGroups = markers.reduce<Record<number, Marker[]>>((acc, m) => {
-    (acc[m.day_number] = acc[m.day_number] ?? []).push(m);
-    return acc;
-  }, {});
-
-  return {
-    '@context': 'https://schema.org',
-    '@type':    'TouristTrip',
-    name:        `${dest} ${duration} 여행 코스`,
-    description: `${dest} ${duration} 여행 일정. ${markers.length}개 장소.`,
-    url:          canonicalUrl,
-    touristType: ['여행', dest],
-    itinerary: Object.entries(dayGroups).map(([day, dayMarkers]) => ({
-      '@type': 'ItemList',
-      name:    `Day ${day}`,
-      itemListElement: dayMarkers
-        .sort((a, b) => a.order_index - b.order_index)
-        .map((m, i) => ({
-          '@type':    'ListItem',
-          position:   i + 1,
-          item: {
-            '@type': 'TouristAttraction',
-            name:     m.name,
-            address:  m.address,
-            geo: m.lat && m.lng ? {
-              '@type':    'GeoCoordinates',
-              latitude:   m.lat,
-              longitude:  m.lng,
-            } : undefined,
-          },
-        })),
-    })),
-    author: {
-      '@type': 'Person',
-      name:    authorName,
-    },
-    datePublished: room.created_at,
-    dateModified:  room.updated_at,
-    aggregateRating: room.fork_count > 0 ? {
-      '@type':       'AggregateRating',
-      ratingValue:   '4.5',
-      reviewCount:   room.fork_count,
-    } : undefined,
-  };
-}
+// JSON-LD는 jsonLd.ts에서 생성 (marketing 라우트 호환 re-export)
+export { generateTripJsonLd } from '@/lib/seo/jsonLd';
 
 // ── 프로그래매틱 랜딩페이지 메타 (탐색 페이지용) ──────────────────
 export function generateExploreMeta(

@@ -292,14 +292,22 @@ export default function RoomEditor({ initialRoom, initialMarkers, currentMember 
   const handleRemoveMarker = useCallback(async (id: number) => {
     if (selectedId === id) setSelectedId(null);
     showSaveStatus('saving');
-    await removeMarkerOptimistic(id);
-    showSaveStatus('saved');
+    try {
+      await removeMarkerOptimistic(id);
+      showSaveStatus('saved');
+    } catch {
+      showSaveStatus('error');
+    }
   }, [removeMarkerOptimistic, selectedId, showSaveStatus]);
 
   const handleReorderMarker = useCallback(async (id: number, dayNumber: number, afterIdx: number | null) => {
     showSaveStatus('saving');
-    await reorderMarkerOptimistic(id, dayNumber, afterIdx);
-    showSaveStatus('saved');
+    try {
+      await reorderMarkerOptimistic(id, dayNumber, afterIdx);
+      showSaveStatus('saved');
+    } catch {
+      showSaveStatus('error');
+    }
   }, [reorderMarkerOptimistic, showSaveStatus]);
 
   const handleUpdateMarker = useCallback(async (id: number, patch: Partial<MarkerWithRoute>) => {

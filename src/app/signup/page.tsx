@@ -209,8 +209,11 @@ function SignupForm() {
           </p>
 
           <p className="text-[11px] text-slate-400 text-center leading-relaxed">
-            가입 시 <span className="underline">이용약관</span>과{' '}
-            <span className="underline">개인정보처리방침</span>에 동의합니다
+            가입 시{' '}
+            <Link href="/terms" className="underline hover:text-slate-600">이용약관</Link>
+            과{' '}
+            <Link href="/privacy" className="underline hover:text-slate-600">개인정보처리방침</Link>
+            에 동의합니다
           </p>
         </form>
       </div>

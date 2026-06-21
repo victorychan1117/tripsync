@@ -8,8 +8,12 @@ import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, E
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
+import { getCountryGradient } from '@/lib/trip/coverImage';
 import type { TripRoom } from '@/lib/supabase/types';
 import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
+import TripReactions from '@/components/trip/TripReactions';
+import TripComments, { type TripCommentItem } from '@/components/trip/TripComments';
+import type { ReactionCounts, ReactionType } from '@/lib/trip/reactions';
 
 const FLAG: Record<string, string> = {
   KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
@@ -24,19 +28,13 @@ const CATEGORY_ICON: Record<string, string> = {
   nature:'🌿', culture:'🏛', etc:'📍',
 };
 
-const GRADIENT: Record<string, [string, string]> = {
-  KR: ['#43B89C', '#3B82F6'], JP: ['#FF6B6B', '#FF8E53'],
-  TH: ['#F59E0B', '#EF4444'], VN: ['#10B981', '#06B6D4'],
-  ID: ['#F97316', '#EF4444'], SG: ['#0EA5E9', '#6366F1'],
-  MY: ['#F59E0B', '#10B981'], FR: ['#6366F1', '#3B82F6'],
-};
-
-interface Owner { nickname: string; avatar_url: string | null }
+interface Owner { id?: string; nickname: string; avatar_url: string | null }
 
 export interface Trip {
   id: string; title: string; destination: string | null;
   country_code: string; start_date: string | null; end_date: string | null;
   nights: number; marker_count: number; member_count: number; view_count: number;
+  cover_image_url: string | null;
   owner: Owner | null;
 }
 
@@ -65,9 +63,9 @@ function fmtStay(min: number): string | null {
   return h > 0 ? (m > 0 ? `${h}시간 ${m}분` : `${h}시간`) : `${m}분`;
 }
 
-function OwnerBadge({ owner }: { owner: Owner }) {
+function OwnerBadge({ owner, onClick }: { owner: Owner; onClick?: () => void }) {
   const initial = owner.nickname.charAt(0).toUpperCase();
-  return (
+  const inner = (
     <div className="flex items-center gap-2">
       {owner.avatar_url && (owner.avatar_url.startsWith('http://') || owner.avatar_url.startsWith('https://')) ? (
         <img src={owner.avatar_url} alt="" className="w-5 h-5 rounded-full object-cover border border-white/30" />
@@ -81,13 +79,23 @@ function OwnerBadge({ owner }: { owner: Owner }) {
       <span className="text-white/80 text-[13px] font-semibold">{owner.nickname}님의 여행</span>
     </div>
   );
+  if (!onClick) return inner;
+  return (
+    <button
+      onClick={onClick}
+      className="hover:opacity-75 transition-opacity text-left"
+      aria-label={`${owner.nickname}님 프로필 보기`}
+    >
+      {inner}
+    </button>
+  );
 }
 
 function Toast({ message }: { message: string }) {
   return (
     <motion.div
       initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
-      className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap"
+      className="fixed bottom-safe left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap"
     >
       {message}
     </motion.div>
@@ -96,12 +104,16 @@ function Toast({ message }: { message: string }) {
 
 export default function TripPublicView({
   trip, markers, userId, initialSaved,
+  initialReactionCounts, initialUserReactions, initialComments,
 }: {
   trip: Trip; markers: Marker[]; userId: string | null; initialSaved: boolean;
+  initialReactionCounts: ReactionCounts;
+  initialUserReactions: ReactionType[];
+  initialComments: TripCommentItem[];
 }) {
   const flag      = FLAG[trip.country_code] ?? '🌐';
   const dest      = trip.destination ?? '여행지';
-  const [g1, g2]  = GRADIENT[trip.country_code] ?? ['#6366F1', '#8B5CF6'];
+  const [g1, g2]  = getCountryGradient(trip.country_code);
   const days      = Array.from(new Set(markers.map(m => m.day_number))).sort((a, b) => a - b);
   const [activeDay, setActiveDay] = useState<number>(days[0] ?? 1);
   const activeMarkers = markers.filter(m => m.day_number === activeDay);
@@ -141,7 +153,7 @@ export default function TripPublicView({
     } else {
       const { error } = await supabase.from('saved_trips').insert({ user_id: userId, room_id: trip.id });
       if (error) { setIsSaved(false); showToast('저장에 실패했어요.'); }
-      else showToast('여행 일지를 저장했어요.');
+      else showToast('여행 일지를 저장했어요. 폴더는 저장함에서 정리할 수 있어요.');
     }
   }, [userId, isSaved, trip.id, showToast]);
 
@@ -177,8 +189,19 @@ export default function TripPublicView({
   return (
     <div className="min-h-screen">
       {/* ── 헤더 배너 ── */}
-      <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-8" style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}>
-        <div className="max-w-4xl mx-auto">
+      <div className="relative px-4 sm:px-6 lg:px-8 pt-6 pb-8 overflow-hidden">
+        {trip.cover_image_url ? (
+          <>
+            <img src={trip.cover_image_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/55 via-black/45 to-black/65" />
+          </>
+        ) : (
+          <div
+            className="absolute inset-0"
+            style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}
+          />
+        )}
+        <div className="relative z-[1] max-w-4xl mx-auto">
           {/* 상단 네비 */}
           <div className="flex items-center justify-between mb-5 gap-2">
             <Link href="/explore" className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold transition-colors shrink-0">
@@ -238,7 +261,10 @@ export default function TripPublicView({
               {/* 작성자 */}
               {trip.owner && (
                 <div className="mt-3">
-                  <OwnerBadge owner={trip.owner} />
+                  <OwnerBadge
+                    owner={trip.owner}
+                    onClick={trip.owner.id ? () => router.push(`/u/${trip.owner!.id}`) : undefined}
+                  />
                 </div>
               )}
             </div>
@@ -271,6 +297,17 @@ export default function TripPublicView({
           />
         </div>
       )}
+
+      {/* ── 반응 ── */}
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+        <TripReactions
+          roomId={trip.id}
+          userId={userId}
+          initialCounts={initialReactionCounts}
+          initialUserReactions={initialUserReactions}
+          onToast={showToast}
+        />
+      </div>
 
       {/* ── 본문 ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -351,6 +388,14 @@ export default function TripPublicView({
             className="mt-6"
           />
         )}
+
+        {/* ── 댓글 ── */}
+        <TripComments
+          roomId={trip.id}
+          userId={userId}
+          initialComments={initialComments}
+          onToast={showToast}
+        />
 
         {/* CTA */}
         <div className="mt-8 bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-3xl p-6 text-center">

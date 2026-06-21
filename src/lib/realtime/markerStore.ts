@@ -157,6 +157,7 @@ export const useMarkerStore = create<MarkerStore>((set, get) => ({
         markers: new Map(state.markers).set(id, prev),
       }));
       console.error('removeMarker error:', error);
+      throw error;
     }
   },
 
@@ -191,6 +192,7 @@ export const useMarkerStore = create<MarkerStore>((set, get) => ({
     if (error) {
       set(state => ({ markers: new Map(state.markers).set(id, prev) }));
       console.error('reorderMarker error:', error);
+      throw error;
     }
   },
 

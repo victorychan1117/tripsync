@@ -1,6 +1,13 @@
 import { redirect } from 'next/navigation';
+import Navbar from '@/components/landing/Navbar';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { normalizeEmbed } from '@/lib/supabase/normalize';
 import TripsClient from './TripsClient';
+
+export const metadata = {
+  title:  '내 여행',
+  robots: { index: false, follow: false },
+};
 
 export default async function MyTripsPage() {
   const userClient = await createClient();
@@ -53,15 +60,24 @@ export default async function MyTripsPage() {
       trip_rooms (
         id, title, destination, country_code,
         start_date, end_date, is_locked,
-        marker_count, member_count, created_at
+        marker_count, member_count, cover_image_url, created_at
       )
     `)
     .eq('user_id', dbUser.id)
     .order('joined_at', { ascending: false });
 
   const trips = (memberships ?? [])
-    .map((m: any) => ({ ...m.trip_rooms, role: m.role, joined_at: m.joined_at }))
+    .map((m: { role: string; joined_at: string; trip_rooms: unknown }) => {
+      const room = normalizeEmbed(m.trip_rooms as Record<string, unknown> | Record<string, unknown>[] | null);
+      if (!room) return null;
+      return { ...room, role: m.role, joined_at: m.joined_at };
+    })
     .filter(Boolean);
 
-  return <TripsClient trips={trips} nickname={dbUser.nickname} />;
+  return (
+    <>
+      <Navbar />
+      <TripsClient trips={trips} nickname={dbUser.nickname} />
+    </>
+  );
 }

@@ -9,6 +9,7 @@ import {
   ChevronRight, Luggage, Plane, Sparkles,
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import TripCoverBanner from '@/components/trip/TripCoverBanner';
 
 // ─── 타입 ────────────────────────────────────────────────────────────
 interface Trip {
@@ -21,6 +22,7 @@ interface Trip {
   is_locked:    boolean;
   marker_count: number;
   member_count: number;
+  cover_image_url: string | null;
   created_at:   string;
   role:         string;
   joined_at:    string;
@@ -179,11 +181,29 @@ function TripCard({ trip, index }: { trip: Trip; index: number }) {
       role="button"
       tabIndex={0}
       aria-label={`${trip.title} 여행 상세보기`}
-      className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 transition-shadow duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2"
+      className="group relative bg-white rounded-3xl border border-slate-100 shadow-sm hover:shadow-xl hover:shadow-slate-200/60 transition-shadow duration-200 cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 overflow-hidden"
     >
+      {/* 커버 이미지 / 그라디언트 상단 */}
+      {trip.cover_image_url ? (
+        <TripCoverBanner
+          coverImageUrl={trip.cover_image_url}
+          countryCode={trip.country_code}
+          destination={dest}
+          flag={flag}
+          heightClass="h-28"
+          overlay="card"
+          showFlagFallback={false}
+        />
+      ) : (
+        <div
+          className="h-3"
+          style={{ background: `linear-gradient(140deg, ${gradient[0]}, ${gradient[1]})` }}
+        />
+      )}
+
       {/* 잠금 표시 */}
       {trip.is_locked && (
-        <div className="absolute top-4 right-14 text-slate-300">
+        <div className="absolute top-4 right-14 text-slate-300 z-[3]">
           <Lock size={12} />
         </div>
       )}
@@ -489,7 +509,7 @@ export default function TripsClient({
           </section>
 
           {/* 오른쪽: 사이드바 */}
-          <div className="lg:sticky lg:top-8 lg:self-start">
+          <div className="lg:sticky lg:top-24 lg:self-start">
             {trips.length > 0 ? (
               <TripSidebar trips={trips} />
             ) : (

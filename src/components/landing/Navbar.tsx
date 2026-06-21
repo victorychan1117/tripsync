@@ -2,8 +2,9 @@
 import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { Navigation, LogOut, User, Mail, Calendar, X, BookOpen, Heart } from 'lucide-react';
+import { Navigation, LogOut, User, Mail, Calendar, X, BookOpen, Heart, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
 // ── 내 정보 모달 ──────────────────────────────────────────────────
@@ -173,6 +174,8 @@ export default function Navbar() {
   const [dropdownOpen,  setDropdownOpen]  = useState(false);
   const [profileOpen,   setProfileOpen]   = useState(false);
 
+  const { count: unreadCount } = useUnreadNotificationCount(!!user);
+
   useEffect(() => {
     const handler = () => setScrolled(window.scrollY > 20);
     window.addEventListener('scroll', handler, { passive: true });
@@ -253,7 +256,59 @@ export default function Navbar() {
         {!loading && (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
             {user ? (
-              /* 로그인 상태 — 아바타 클릭 → 드롭다운 */
+              <>
+                {/* 알림 */}
+                <Link
+                  href="/my/notifications"
+                  aria-label="알림"
+                  style={{
+                    position:       'relative',
+                    width:          40,
+                    height:         40,
+                    borderRadius:   '50%',
+                    background:     '#f8fafc',
+                    border:         '1px solid #e2e8f0',
+                    display:        'flex',
+                    alignItems:     'center',
+                    justifyContent: 'center',
+                    textDecoration: 'none',
+                    transition:     'background 0.15s, transform 0.15s',
+                  }}
+                  onMouseEnter={e => {
+                    (e.currentTarget as HTMLElement).style.background = '#f1f5f9';
+                    (e.currentTarget as HTMLElement).style.transform = 'scale(1.05)';
+                  }}
+                  onMouseLeave={e => {
+                    (e.currentTarget as HTMLElement).style.background = '#f8fafc';
+                    (e.currentTarget as HTMLElement).style.transform = 'scale(1)';
+                  }}
+                >
+                  <Bell size={18} color="#6366F1" />
+                  {unreadCount > 0 && (
+                    <span style={{
+                      position:        'absolute',
+                      top:               -2,
+                      right:             -2,
+                      minWidth:          18,
+                      height:            18,
+                      padding:           '0 5px',
+                      borderRadius:      999,
+                      background:        '#ef4444',
+                      color:             '#ffffff',
+                      fontSize:          10,
+                      fontWeight:        800,
+                      display:           'flex',
+                      alignItems:        'center',
+                      justifyContent:    'center',
+                      border:            '2px solid #ffffff',
+                      boxShadow:         '0 2px 6px rgba(239,68,68,0.4)',
+                    }}>
+                      {unreadCount > 99 ? '99+' : unreadCount}
+                    </span>
+                  )}
+                </Link>
+
+                {/* 아바타 드롭다운 */}
               <div ref={dropdownRef} style={{ position: 'relative' }}>
                 <button
                   onClick={() => setDropdownOpen(v => !v)}
@@ -307,6 +362,42 @@ export default function Navbar() {
                       <div style={{ fontSize: 14, fontWeight: 700, color: '#0f172a' }}>{name}</div>
                       <div style={{ fontSize: 12, color: '#94a3b8', marginTop: 2 }}>{user.email}</div>
                     </div>
+
+                    {/* 알림 */}
+                    <Link
+                      href="/my/notifications"
+                      onClick={() => setDropdownOpen(false)}
+                      style={{
+                        width:      '100%',
+                        display:    'flex',
+                        alignItems: 'center',
+                        gap:        10,
+                        padding:    '12px 18px',
+                        fontSize:   14,
+                        fontWeight: 600,
+                        color:      '#374151',
+                        textDecoration: 'none',
+                        transition: 'background 0.15s',
+                      }}
+                      onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#f8fafc')}
+                      onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
+                    >
+                      <Bell size={16} color="#6366F1" />
+                      알림
+                      {unreadCount > 0 && (
+                        <span style={{
+                          marginLeft: 'auto',
+                          fontSize: 11,
+                          fontWeight: 800,
+                          color: '#ef4444',
+                          background: '#fef2f2',
+                          padding: '2px 8px',
+                          borderRadius: 999,
+                        }}>
+                          {unreadCount}
+                        </span>
+                      )}
+                    </Link>
 
                     {/* 내 여행 */}
                     <Link
@@ -404,6 +495,7 @@ export default function Navbar() {
                   </div>
                 )}
               </div>
+              </>
             ) : (
               /* 비로그인 상태 */
               <>

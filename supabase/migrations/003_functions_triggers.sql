@@ -183,17 +183,17 @@ CREATE TRIGGER on_auth_user_created
 CREATE OR REPLACE FUNCTION handle_trip_public_toggle()
 RETURNS TRIGGER LANGUAGE plpgsql AS $$
 DECLARE
-  url_path TEXT;
+  v_url_path TEXT;
 BEGIN
   -- 공개로 전환된 경우에만
   IF NEW.is_public = TRUE AND (OLD.is_public = FALSE OR OLD.is_public IS NULL) THEN
-    url_path := '/trips/' || COALESCE(
+    v_url_path := '/trips/' || COALESCE(
       (SELECT slug FROM destinations WHERE id = NEW.destination_id),
       lower(regexp_replace(COALESCE(NEW.destination, 'unknown'), '[^a-zA-Z0-9]', '-', 'g'))
     ) || '/' || NEW.nights || 'nights-' || (NEW.nights + 1) || 'days/' || NEW.id;
 
     INSERT INTO seo_pages (room_id, url_path, last_modified, priority)
-    VALUES (NEW.id, url_path, now(), 0.8)
+    VALUES (NEW.id, v_url_path, now(), 0.8)
     ON CONFLICT (url_path) DO UPDATE SET last_modified = now();
 
     -- SEO 메타 자동 생성

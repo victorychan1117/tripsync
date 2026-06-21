@@ -36,6 +36,12 @@ html, body {
 }
 
 @layer utilities {
+  .pb-safe {
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+  .bottom-safe {
+    bottom: max(1.5rem, env(safe-area-inset-bottom));
+  }
   .animate-draw-path {
     stroke-dashoffset: 200;
     animation: drawPath 0.9s cubic-bezier(0.4, 0, 0.2, 1) forwards;

@@ -5,6 +5,7 @@ import PopularTrips from '@/components/landing/PopularTrips';
 import FeaturesSection from '@/components/landing/FeaturesSection';
 import HeroSearch from '@/components/landing/HeroSearch';
 import CtaSection from '@/components/landing/CtaSection';
+import SiteFooter from '@/components/landing/SiteFooter';
 import { createClient } from '@/lib/supabase/server';
 
 export default async function HomePage() {
@@ -328,6 +329,7 @@ export default async function HomePage() {
       {/* ── CTA ── */}
       <CtaSection isLoggedIn={isLoggedIn} />
 
+      <SiteFooter />
     </main>
   );
 }

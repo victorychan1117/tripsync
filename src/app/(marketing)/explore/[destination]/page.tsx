@@ -83,7 +83,7 @@ export default async function ExplorePage({ params }: Props) {
             {rooms.map((room: any, i: number) => (
               <Link
                 key={room.id}
-                href={`/trips/${encodeURIComponent(decodedDest)}/${room.nights}/${room.id}`}
+                href={`/t/${room.id}`}
                 className="group bg-white rounded-2xl border border-slate-100 p-5 shadow-card hover:shadow-card-hover hover:-translate-y-0.5 transition-all duration-200 no-underline"
               >
                 {/* 색상 바 */}

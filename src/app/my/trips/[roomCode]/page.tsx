@@ -1,6 +1,12 @@
 import { redirect, notFound } from 'next/navigation';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { normalizeEmbed } from '@/lib/supabase/normalize';
 import TripDetailClient from './TripDetailClient';
+
+export const metadata = {
+  title:  '여행 관리',
+  robots: { index: false, follow: false },
+};
 
 interface Props {
   params: Promise<{ roomCode: string }>;
@@ -48,6 +54,14 @@ export default async function TripDetailPage({ params }: Props) {
 
   if (error || !room) notFound();
 
+  const normalizedRoom = {
+    ...room,
+    trip_members: (room.trip_members ?? []).map((m: { users?: unknown; [k: string]: unknown }) => ({
+      ...m,
+      users: normalizeEmbed(m.users as { nickname: string; avatar_url: string | null } | null),
+    })),
+  };
+
   // 장소 목록
   const { data: markers } = await service
     .from('markers')
@@ -58,7 +72,7 @@ export default async function TripDetailPage({ params }: Props) {
 
   return (
     <TripDetailClient
-      room={room}
+      room={normalizedRoom}
       markers={markers ?? []}
       myRole={member.role}
       myMemberId={member.id}

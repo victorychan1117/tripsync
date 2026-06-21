@@ -3,7 +3,10 @@ import Navbar from '@/components/landing/Navbar';
 import ProfileClient from '@/components/my/ProfileClient';
 import { createClient } from '@/lib/supabase/server';
 
-export const metadata = { title: '내 프로필 | TripSync' };
+export const metadata = {
+  title:  '내 프로필',
+  robots: { index: false, follow: false },
+};
 
 export default async function ProfilePage() {
   const supabase = await createClient();

@@ -41,11 +41,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
-  // 이미 로그인 상태에서 로그인 페이지 접근 → 홈으로
-  if (AUTH_ROUTES.includes(pathname) && user) {
-    const homeUrl = request.nextUrl.clone();
-    homeUrl.pathname = '/';
-    return NextResponse.redirect(homeUrl);
+  // 이미 로그인 상태에서 로그인/회원가입 → redirect 파라미터 또는 홈
+  if (AUTH_ROUTES.includes(pathname) && user && pathname !== '/auth/callback') {
+    const dest = request.nextUrl.searchParams.get('redirect');
+    const target = request.nextUrl.clone();
+    target.pathname = dest && dest.startsWith('/') ? dest : '/';
+    target.search = '';
+    return NextResponse.redirect(target);
   }
 
   return supabaseResponse;

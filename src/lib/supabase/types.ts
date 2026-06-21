@@ -199,3 +199,71 @@ export interface RouteSegment {
   distanceText: string;
   polyline:     string | null;
 }
+
+// ── 공개 여행 댓글 / 반응 ───────────────────────────────────────────
+
+export type TripReactionType = 'like' | 'bookmark' | 'want_to_go' | 'beautiful';
+
+export interface TripComment {
+  id:         number;
+  room_id:    string;
+  user_id:    string;
+  content:    string;
+  is_hidden:  boolean;
+  created_at: string;
+  updated_at: string;
+}
+
+export type CommentReportReason = 'spam' | 'abuse' | 'privacy' | 'inappropriate' | 'other';
+
+export interface CommentReport {
+  id:          number;
+  comment_id:  number;
+  reporter_id: string;
+  reason:      CommentReportReason;
+  detail:      string | null;
+  created_at:  string;
+}
+
+export interface TripReaction {
+  id:            number;
+  room_id:       string;
+  user_id:       string;
+  reaction_type: TripReactionType;
+  created_at:    string;
+}
+
+export type NotificationType = 'trip_comment' | 'trip_reaction' | 'trip_saved' | 'trip_cloned';
+
+export interface Notification {
+  id:         number;
+  user_id:    string;
+  actor_id:   string | null;
+  room_id:    string | null;
+  type:       NotificationType;
+  title:      string;
+  message:    string | null;
+  link_url:   string | null;
+  is_read:    boolean;
+  created_at: string;
+}
+
+// ── 저장한 여행 / 폴더 ───────────────────────────────────────────────
+
+export interface SavedTripFolderRow {
+  id:         number;
+  user_id:    string;
+  name:       string;
+  emoji:      string;
+  sort_order: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SavedTripRow {
+  id:         number;
+  user_id:    string;
+  room_id:    string;
+  folder_id:  number | null;
+  created_at: string;
+}
