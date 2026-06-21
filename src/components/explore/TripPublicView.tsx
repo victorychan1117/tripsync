@@ -2,8 +2,9 @@
 
 import Link from 'next/link';
 import { useState, useCallback } from 'react';
+import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye, Heart } from 'lucide-react';
+import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye, Heart, Copy, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
 
@@ -104,12 +105,15 @@ export default function TripPublicView({
   const dayIdx  = days.indexOf(activeDay);
   const hasPrev = dayIdx > 0, hasNext = dayIdx < days.length - 1;
 
+  const router = useRouter();
+
   const [isSaved, setIsSaved] = useState(initialSaved);
+  const [cloning, setCloning] = useState(false);
   const [toast, setToast]     = useState<string | null>(null);
 
   const showToast = useCallback((msg: string) => {
     setToast(msg);
-    setTimeout(() => setToast(null), 2500);
+    setTimeout(() => setToast(null), 2800);
   }, []);
 
   const handleToggleSave = useCallback(async () => {
@@ -128,28 +132,75 @@ export default function TripPublicView({
     }
   }, [userId, isSaved, trip.id, showToast]);
 
+  const handleClone = useCallback(async () => {
+    if (!userId) {
+      showToast('로그인 후 내 여행으로 담을 수 있어요.');
+      return;
+    }
+    setCloning(true);
+    try {
+      const supabase = createClient();
+      const { data: newRoomId, error } = await supabase.rpc('clone_public_trip', {
+        p_source_room_id: trip.id,
+      });
+      if (error) {
+        const hint = (error as unknown as { hint?: string }).hint;
+        if (hint === '공개된 여행만 담을 수 있어요.') {
+          showToast('공개된 여행만 담을 수 있어요.');
+        } else {
+          showToast('여행을 담지 못했어요. 잠시 후 다시 시도해주세요.');
+        }
+        return;
+      }
+      showToast('내 여행에 담았어요. 🎉');
+      setTimeout(() => router.push(`/my/trips/${newRoomId}`), 900);
+    } catch {
+      showToast('여행을 담지 못했어요. 잠시 후 다시 시도해주세요.');
+    } finally {
+      setCloning(false);
+    }
+  }, [userId, trip.id, showToast, router]);
+
   return (
     <div className="min-h-screen">
       {/* ── 헤더 배너 ── */}
       <div className="px-4 sm:px-6 lg:px-8 pt-6 pb-8" style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}>
         <div className="max-w-4xl mx-auto">
           {/* 상단 네비 */}
-          <div className="flex items-center justify-between mb-5">
-            <Link href="/explore" className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold transition-colors">
+          <div className="flex items-center justify-between mb-5 gap-2">
+            <Link href="/explore" className="group inline-flex items-center gap-1.5 text-white/70 hover:text-white text-sm font-semibold transition-colors shrink-0">
               <ArrowLeft size={14} className="group-hover:-translate-x-0.5 transition-transform" />
               여행 탐색
             </Link>
-            <motion.button
-              onClick={handleToggleSave}
-              whileTap={{ scale: 0.8 }}
-              className={cn(
-                'flex items-center gap-2 px-4 py-2 rounded-2xl text-sm font-bold transition-all duration-200',
-                isSaved ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
-              )}
-            >
-              <Heart size={15} fill={isSaved ? 'white' : 'none'} color="white" className="transition-all" />
-              {isSaved ? '저장됨' : '저장하기'}
-            </motion.button>
+
+            <div className="flex items-center gap-2">
+              {/* 저장하기 */}
+              <motion.button
+                onClick={handleToggleSave}
+                whileTap={{ scale: 0.8 }}
+                className={cn(
+                  'flex items-center gap-1.5 px-3 py-2 rounded-2xl text-sm font-bold transition-all duration-200',
+                  isSaved ? 'bg-red-500 text-white shadow-lg shadow-red-500/30' : 'bg-white/20 backdrop-blur-sm text-white hover:bg-white/30',
+                )}
+              >
+                <Heart size={14} fill={isSaved ? 'white' : 'none'} color="white" className="transition-all shrink-0" />
+                <span className="hidden sm:inline">{isSaved ? '저장됨' : '저장하기'}</span>
+              </motion.button>
+
+              {/* 내 여행에 담기 */}
+              <motion.button
+                onClick={handleClone}
+                disabled={cloning}
+                whileTap={{ scale: 0.85 }}
+                className="flex items-center gap-1.5 px-3 py-2 rounded-2xl text-sm font-bold bg-white text-violet-600 hover:bg-violet-50 transition-all duration-200 disabled:opacity-60 shadow-sm"
+              >
+                {cloning
+                  ? <Loader2 size={14} className="animate-spin shrink-0" />
+                  : <Copy size={14} className="shrink-0" />}
+                <span className="hidden sm:inline">{cloning ? '담는 중...' : '내 여행에 담기'}</span>
+                <span className="sm:hidden">{cloning ? '담기' : '담기'}</span>
+              </motion.button>
+            </div>
           </div>
 
           {/* 제목 및 메타 */}
