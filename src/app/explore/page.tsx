@@ -4,6 +4,7 @@ import ExploreClient, { type PublicTrip } from '@/components/explore/ExploreClie
 import JsonLd from '@/components/seo/JsonLd';
 import { generateExploreJsonLd } from '@/lib/seo/jsonLd';
 import { createClient } from '@/lib/supabase/server';
+import { APP_NAME } from '@/lib/config/site';
 import { normalizeEmbed } from '@/lib/supabase/normalize';
 
 import type { Metadata } from 'next';
@@ -13,7 +14,7 @@ export const metadata: Metadata = {
   description: '다른 여행자들이 공개한 여행 일정과 코스를 둘러보고, 마음에 드는 여행을 내 일정으로 담아보세요.',
   alternates: { canonical: '/explore' },
   openGraph: {
-    title:       '공개 여행 둘러보기 | 여행 일지',
+    title:       `공개 여행 둘러보기 | ${APP_NAME}`,
     description: '다른 여행자들이 공개한 여행 일정과 코스를 둘러보고, 마음에 드는 여행을 내 일정으로 담아보세요.',
     url:         '/explore',
     type:        'website',
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card:        'summary_large_image',
-    title:       '공개 여행 둘러보기 | 여행 일지',
+    title:       `공개 여행 둘러보기 | ${APP_NAME}`,
     description: '다른 여행자들이 공개한 여행 일정과 코스를 둘러보고, 마음에 드는 여행을 내 일정으로 담아보세요.',
     images:      ['/landing/hero.png'],
   },

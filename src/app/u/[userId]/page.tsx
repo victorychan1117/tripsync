@@ -2,6 +2,7 @@ import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import Navbar from '@/components/landing/Navbar';
 import { createClient } from '@/lib/supabase/server';
+import { APP_NAME } from '@/lib/config/site';
 import PublicProfileClient from '@/components/profile/PublicProfileClient';
 import JsonLd from '@/components/seo/JsonLd';
 import { generateProfileJsonLd } from '@/lib/seo/jsonLd';
@@ -26,17 +27,17 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   if (!profile) return { title: '여행자 프로필' };
 
-  const title       = `${profile.nickname}님의 여행 일지`;
+  const title       = `${profile.nickname}님의 여행`;
   const description = count
-    ? `${profile.nickname}님이 공개한 여행 일정 ${count}개를 여행 일지에서 둘러보세요.`
-    : `${profile.nickname}님이 공개한 여행 일지를 여행 일지에서 확인해보세요.`;
+    ? `${profile.nickname}님이 공개한 여행 일정 ${count}개를 ${APP_NAME}에서 둘러보세요.`
+    : `${profile.nickname}님이 공개한 여행을 ${APP_NAME}에서 확인해보세요.`;
 
   return {
     title,
     description,
     alternates: { canonical: `/u/${userId}` },
     openGraph: {
-      title:       `${title} | 여행 일지`,
+      title:       `${title} | ${APP_NAME}`,
       description,
       url:         `/u/${userId}`,
       type:        'profile',
@@ -44,7 +45,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card:        'summary_large_image',
-      title:       `${title} | 여행 일지`,
+      title:       `${title} | ${APP_NAME}`,
       description,
       images:      ['/landing/hero.png'],
     },

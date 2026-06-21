@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye, Heart, Copy, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { APP_NAME } from '@/lib/config/site';
 import { createClient } from '@/lib/supabase/client';
 import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
 import { getCountryGradient } from '@/lib/trip/coverImage';
@@ -400,7 +401,7 @@ export default function TripPublicView({
         {/* CTA */}
         <div className="mt-8 bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-3xl p-6 text-center">
           <p className="text-[15px] font-extrabold text-slate-800 mb-1.5">이런 여행 일정 나도 만들어볼까요? ✈️</p>
-          <p className="text-sm text-slate-500 mb-4">TripSync로 친구들과 함께 여행 일정을 만들어보세요.</p>
+          <p className="text-sm text-slate-500 mb-4">{APP_NAME}로 친구들과 함께 여행 일정을 만들어보세요.</p>
           <Link href="/room/new" className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white text-sm font-bold px-6 py-3 rounded-2xl shadow-md shadow-violet-200 transition-colors">
             새 여행 만들기
           </Link>

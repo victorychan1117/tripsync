@@ -1218,7 +1218,7 @@ function MapArea({ places, selected, onSelect, onClose }) {
           }}
           onMouseEnter={e => e.currentTarget.style.transform = 'scale(1.04)'}
           onMouseLeave={e => e.currentTarget.style.transform = 'scale(1)'}
-          onClick={() => alert('🔗 일정 공유 링크가 복사되었습니다!\nhttps://tripsync.com/trips/jeju/3nights-4days/t8xK2m')}
+          onClick={() => alert('🔗 일정 공유 링크가 복사되었습니다!\nhttps://gabojago.app/trips/jeju/3nights-4days/t8xK2m')}
         >
           <IC.Copy width={13} height={13} />
           공유하기
@@ -1273,7 +1273,7 @@ export default function TravelPlannerDashboard() {
 
   const copyCode = useCallback(() => {
     try {
-      navigator.clipboard.writeText(`https://tripsync.com/room/${code}`);
+      navigator.clipboard.writeText(`https://gabojago.app/room/${code}`);
     } catch {}
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);

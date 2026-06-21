@@ -2,6 +2,7 @@
 import { useState, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
+import { APP_NAME } from '@/lib/config/site';
 import { Navigation, Mail, Lock, User, Loader2, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
 
@@ -96,7 +97,7 @@ function SignupForm() {
             <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center">
               <Navigation size={20} className="text-white" />
             </div>
-            <span className="text-2xl font-extrabold text-white">TripSync</span>
+            <span className="text-2xl font-extrabold text-white">{APP_NAME}</span>
           </div>
           <p className="text-white/75 text-sm">회원가입</p>
         </div>

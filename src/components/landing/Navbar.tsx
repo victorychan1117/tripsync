@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { Navigation, LogOut, User, Mail, Calendar, X, BookOpen, Heart, Bell } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
+import { APP_NAME } from '@/lib/config/site';
 import { useUnreadNotificationCount } from '@/hooks/useUnreadNotificationCount';
 import type { User as SupabaseUser } from '@supabase/supabase-js';
 
@@ -89,7 +90,7 @@ function ProfileModal({ user, onClose }: { user: SupabaseUser; onClose: () => vo
             padding:    '3px 10px',
             borderRadius: 999,
           }}>
-            TripSync 멤버
+            {APP_NAME} 멤버
           </span>
         </div>
 
@@ -248,7 +249,7 @@ export default function Navbar() {
             <Navigation size={17} color="white" />
           </div>
           <span style={{ fontSize: 18, fontWeight: 800, color: '#0f172a', letterSpacing: '-0.02em' }}>
-            TripSync
+            {APP_NAME}
           </span>
         </Link>
 

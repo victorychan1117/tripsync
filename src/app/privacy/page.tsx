@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import LegalDocLayout from '@/components/legal/LegalDocLayout';
+import { APP_NAME } from '@/lib/config/site';
 
 export const metadata: Metadata = {
   title:       '개인정보처리방침',
-  description: '여행 일지 서비스 개인정보처리방침',
+  description: `${APP_NAME} 서비스 개인정보처리방침`,
   alternates:  { canonical: '/privacy' },
 };
 

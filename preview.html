@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TripSync — 여행 플래너 프로토타입</title>
+  <title>가보자Go — 여행 플래너 프로토타입</title>
   <script src="https://unpkg.com/react@18/umd/react.development.js" crossorigin></script>
   <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js" crossorigin></script>
   <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -531,7 +531,7 @@
           )),
           React.createElement('div',{style:{width:1,height:32,background:'#E2E8F0',margin:'0 4px'}}),
           React.createElement('button',{
-            onClick:()=>alert('🔗 일정 공유 링크 복사!\nhttps://tripsync.com/trips/jeju/3nights-4days/t8xK2m'),
+            onClick:()=>alert('🔗 일정 공유 링크 복사!\nhttps://gabojago.app/trips/jeju/3nights-4days/t8xK2m'),
             style:{
               display:'flex',alignItems:'center',gap:6,padding:'8px 16px',
               background:'linear-gradient(135deg,#6366F1,#8B5CF6)',border:'none',borderRadius:12,
@@ -579,7 +579,7 @@
       },[]);
 
       const copyCode=useCallback(()=>{
-        try{ navigator.clipboard.writeText(`https://tripsync.com/room/${code}`); }catch{}
+        try{ navigator.clipboard.writeText(`https://gabojago.app/room/${code}`); }catch{}
         setCopied(true); setTimeout(()=>setCopied(false),2000);
       },[code]);
 

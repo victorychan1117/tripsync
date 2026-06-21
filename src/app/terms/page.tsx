@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import LegalDocLayout from '@/components/legal/LegalDocLayout';
+import { APP_NAME } from '@/lib/config/site';
 
 export const metadata: Metadata = {
   title:       '이용약관',
-  description: '여행 일지 서비스 이용약관',
+  description: `${APP_NAME} 서비스 이용약관`,
   alternates:  { canonical: '/terms' },
 };
 

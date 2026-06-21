@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { createServiceClient } from '@/lib/supabase/server';
 import { generateExploreMeta } from '@/lib/seo/generateTripMeta';
+import { APP_NAME } from '@/lib/config/site';
 import { Navigation, MapPin, Star, Users } from 'lucide-react';
 
 interface Props {
@@ -51,7 +52,7 @@ export default async function ExplorePage({ params }: Props) {
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center gap-3">
           <Link href="/" className="flex items-center gap-2 text-brand-500 font-extrabold">
             <Navigation size={18} />
-            TripSync
+            {APP_NAME}
           </Link>
           <span className="text-slate-200">/</span>
           <span className="text-slate-600 text-sm">여행 일정 탐색</span>

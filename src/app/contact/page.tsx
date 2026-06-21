@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import LegalDocLayout from '@/components/legal/LegalDocLayout';
+import { SUPPORT_EMAIL, APP_NAME } from '@/lib/config/site';
 
 export const metadata: Metadata = {
   title:       '문의하기',
-  description: '여행 일지 서비스 문의',
+  description: `${APP_NAME} 서비스 문의`,
   robots:      { index: false, follow: true },
 };
 
@@ -20,10 +21,10 @@ export default function ContactPage() {
         <div>
           <p className="text-[12px] font-bold text-slate-400 mb-1">이메일</p>
           <a
-            href="mailto:support@tripsync.app"
+            href={`mailto:${SUPPORT_EMAIL}`}
             className="text-[15px] font-semibold text-violet-600 hover:underline"
           >
-            support@tripsync.app
+            {SUPPORT_EMAIL}
           </a>
         </div>
         <p className="text-[13px] text-slate-500 leading-relaxed">

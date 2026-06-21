@@ -1,6 +1,7 @@
 'use client';
 import Image from 'next/image';
 import { motion } from 'framer-motion';
+import { APP_NAME } from '@/lib/config/site';
 
 const FEATURES = [
   {
@@ -148,7 +149,7 @@ export default function FeaturesSection() {
           borderRadius:  999,
           marginBottom:  16,
         }}>
-          Why TripSync
+          Why {APP_NAME}
         </span>
         <h2 style={{
           fontSize:      'clamp(22px, 3vw, 42px)',

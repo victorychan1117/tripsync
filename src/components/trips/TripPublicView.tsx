@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Navigation, Users, Clock, MapPin, Copy, Check } from 'lucide-react';
 import { useState } from 'react';
 import { getAffiliateInsertions } from '@/lib/affiliate/affiliateRules';
+import { APP_NAME } from '@/lib/config/site';
 import type { TripRoom, Marker } from '@/lib/supabase/types';
 
 const PIN_COLORS = ['#6366F1','#8B5CF6','#EC4899','#F97316','#EAB308','#10B981','#0EA5E9'];
@@ -55,7 +56,7 @@ export default function TripPublicView({ room, markers, authorName }: Props) {
         <div className="max-w-3xl mx-auto px-4 py-4 flex items-center justify-between">
           <Link href="/" className="flex items-center gap-2 text-brand-500 font-extrabold">
             <Navigation size={18} />
-            <span>TripSync</span>
+            <span>{APP_NAME}</span>
           </Link>
           <div className="flex items-center gap-3">
             <button

@@ -1,6 +1,7 @@
 import { notFound } from 'next/navigation';
 import type { Metadata } from 'next';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
+import { APP_NAME } from '@/lib/config/site';
 import { normalizeEmbed } from '@/lib/supabase/normalize';
 import { resolveOgImageUrl } from '@/lib/trip/coverImage';
 import { generatePublicTripJsonLd } from '@/lib/seo/jsonLd';
@@ -35,8 +36,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   const title       = data.title;
   const description = author
-    ? `${author}님의 ${dest} ${nights} 여행 일정 — 장소 ${places}곳 수록. 여행 일지에서 확인해보세요.`
-    : `${dest} ${nights} 여행 일정 — 장소 ${places}곳 수록. 여행 일지에서 확인해보세요.`;
+    ? `${author}님의 ${dest} ${nights} 여행 일정 — 장소 ${places}곳 수록. ${APP_NAME}에서 확인해보세요.`
+    : `${dest} ${nights} 여행 일정 — 장소 ${places}곳 수록. ${APP_NAME}에서 확인해보세요.`;
 
   const ogImage = resolveOgImageUrl(data.cover_image_url);
 
@@ -45,7 +46,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     description,
     alternates: { canonical: `/t/${tripId}` },
     openGraph: {
-      title:       `${title} | 여행 일지`,
+      title:       `${title} | ${APP_NAME}`,
       description,
       url:         `/t/${tripId}`,
       type:        'article',
@@ -53,7 +54,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     },
     twitter: {
       card:        'summary_large_image',
-      title:       `${title} | 여행 일지`,
+      title:       `${title} | ${APP_NAME}`,
       description,
       images:      [ogImage],
     },

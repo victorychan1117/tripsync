@@ -1,9 +1,10 @@
 import type { Metadata } from 'next';
 import LegalDocLayout from '@/components/legal/LegalDocLayout';
+import { REPORT_EMAIL, APP_NAME } from '@/lib/config/site';
 
 export const metadata: Metadata = {
   title:       '신고·삭제 요청',
-  description: '여행 일지 부적절 콘텐츠 신고 및 삭제 요청 안내',
+  description: `${APP_NAME} 부적절 콘텐츠 신고 및 삭제 요청 안내`,
   robots:      { index: false, follow: true },
 };
 
@@ -33,10 +34,10 @@ export default function ReportPage() {
       <section className="rounded-2xl bg-white border border-slate-100 p-5">
         <p className="text-[12px] font-bold text-slate-400 mb-1">삭제·신고 요청 이메일</p>
         <a
-          href="mailto:report@tripsync.app"
+          href={`mailto:${REPORT_EMAIL}`}
           className="text-[15px] font-semibold text-violet-600 hover:underline"
         >
-          report@tripsync.app
+          {REPORT_EMAIL}
         </a>
         <p className="text-[13px] text-slate-500 mt-3 leading-relaxed">
           요청 시 URL(예: /t/여행ID), 사유, 필요 시 증빙 자료를 함께 보내주세요.

@@ -1,5 +1,6 @@
 import Image from 'next/image';
 import { Star } from 'lucide-react';
+import { APP_NAME } from '@/lib/config/site';
 import Navbar from '@/components/landing/Navbar';
 import PopularTrips from '@/components/landing/PopularTrips';
 import FeaturesSection from '@/components/landing/FeaturesSection';
@@ -193,7 +194,7 @@ export default async function HomePage() {
             }}>
               <Image
                 src="/landing/hero.png"
-                alt="지도 위에 여행 장소가 핀으로 표시된 TripSync 협업 플래너 화면"
+                alt={`지도 위에 여행 장소가 핀으로 표시된 ${APP_NAME} 협업 플래너 화면`}
                 fill
                 priority
                 sizes="(max-width: 768px) 100vw, 50vw"
