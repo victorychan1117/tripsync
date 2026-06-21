@@ -14,6 +14,7 @@ import { createClient } from '@/lib/supabase/client';
 import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
 import type { TripRoom } from '@/lib/supabase/types';
 import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
+import CompletionModal from '@/components/affiliate/CompletionModal';
 
 // ─── 상수 ────────────────────────────────────────────────────────────
 const FLAG: Record<string, string> = {
@@ -291,6 +292,8 @@ export default function TripDetailClient({
   } as TripRoom;
   const headerBanner  = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'TRIP_HEADER_BANNER');
   const dividerBanner = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'DAY_DIVIDER_BANNER');
+  const insuranceCTA  = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'COMPLETION_MODAL');
+  const hasLodging    = markers.some(m => m.category === 'lodging');
 
   const handleCopy = async () => {
     await navigator.clipboard.writeText(
@@ -727,6 +730,18 @@ export default function TripDetailClient({
           </aside>
         </div>
       </div>
+
+      {/* ── 여행 완성 체크리스트 모달 (owner + 장소 3개+) ── */}
+      {isOwner && markers.length >= 3 && insuranceCTA && (
+        <CompletionModal
+          roomId={room.id}
+          destination={room.destination}
+          markerCount={markers.length}
+          hasLodging={hasLodging}
+          insuranceCTA={insuranceCTA}
+          lodgingUrl={dividerBanner?.url ?? null}
+        />
+      )}
 
       {/* ── 다이얼로그들 ────────────────────────────────────── */}
       <AnimatePresence>
