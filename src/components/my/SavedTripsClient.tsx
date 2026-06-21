@@ -30,6 +30,7 @@ export interface SavedTrip {
   nights: number;
   marker_count: number;
   view_count: number;
+  owner: { nickname: string; avatar_url: string | null } | null;
 }
 
 function fmtNights(nights: number): string {
@@ -41,12 +42,31 @@ function getGradient(code: string): [string, string] {
   return GRADIENT[code] ?? ['#6366F1', '#8B5CF6'];
 }
 
+function OwnerBadge({ nickname, avatarUrl }: { nickname: string; avatarUrl: string | null }) {
+  const initial = nickname.charAt(0).toUpperCase();
+  return (
+    <div className="flex items-center gap-1.5">
+      {avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) ? (
+        <img src={avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+      ) : avatarUrl ? (
+        <span style={{ fontSize: 13, lineHeight: 1 }}>{avatarUrl}</span>
+      ) : (
+        <div
+          className="w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0"
+          style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', fontSize: 8, fontWeight: 800 }}
+        >
+          {initial}
+        </div>
+      )}
+      <span className="text-[11px] text-slate-400 font-semibold truncate">{nickname}님의 여행</span>
+    </div>
+  );
+}
+
 function Toast({ message }: { message: string }) {
   return (
     <motion.div
-      initial={{ opacity: 0, y: 24 }}
-      animate={{ opacity: 1, y: 0 }}
-      exit={{ opacity: 0, y: 12 }}
+      initial={{ opacity: 0, y: 24 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 12 }}
       className="fixed bottom-6 left-1/2 -translate-x-1/2 z-[200] bg-slate-900 text-white text-sm font-semibold px-5 py-3 rounded-2xl shadow-xl pointer-events-none whitespace-nowrap"
     >
       {message}
@@ -72,19 +92,10 @@ export default function SavedTripsClient({
   const handleUnsave = useCallback(async (e: React.MouseEvent, tripId: string) => {
     e.preventDefault();
     e.stopPropagation();
-
-    // 낙관적 제거
     setTrips(prev => prev.filter(t => t.id !== tripId));
-
     const supabase = createClient();
-    const { error } = await supabase
-      .from('saved_trips')
-      .delete()
-      .eq('user_id', userId)
-      .eq('room_id', tripId);
-
+    const { error } = await supabase.from('saved_trips').delete().eq('user_id', userId).eq('room_id', tripId);
     if (error) {
-      // 롤백
       setTrips(initialTrips);
       showToast('저장 해제에 실패했어요.');
     } else {
@@ -97,23 +108,15 @@ export default function SavedTripsClient({
       {/* 헤더 */}
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.4 }}
-          >
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.4 }}>
             <div className="flex items-center gap-3 mb-1.5">
               <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-red-400 to-pink-500 flex items-center justify-center shadow-md shadow-red-200">
                 <Bookmark size={17} color="white" fill="white" />
               </div>
-              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">
-                저장한 여행
-              </h1>
+              <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight">저장한 여행</h1>
             </div>
             <p className="text-slate-500 text-sm ml-12">
-              {trips.length > 0
-                ? `총 ${trips.length}개의 여행을 저장했어요`
-                : '아직 저장한 여행이 없어요'}
+              {trips.length > 0 ? `총 ${trips.length}개의 여행을 저장했어요` : '아직 저장한 여행이 없어요'}
             </p>
           </motion.div>
         </div>
@@ -122,12 +125,8 @@ export default function SavedTripsClient({
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         <AnimatePresence mode="wait">
           {trips.length === 0 ? (
-            <motion.div
-              key="empty"
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="flex flex-col items-center justify-center py-28 text-center"
-            >
+            <motion.div key="empty" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+              className="flex flex-col items-center justify-center py-28 text-center">
               <div className="w-28 h-28 rounded-full bg-pink-50 flex items-center justify-center mb-6">
                 <Heart size={48} className="text-pink-200" />
               </div>
@@ -135,45 +134,28 @@ export default function SavedTripsClient({
               <p className="text-slate-400 text-sm mb-8 max-w-xs leading-relaxed">
                 Explore에서 마음에 드는 여행을 발견하고 하트를 눌러 저장해보세요.
               </p>
-              <Link
-                href="/explore"
-                className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-sm font-bold rounded-2xl shadow-md shadow-violet-200 hover:from-violet-600 hover:to-indigo-600 transition-colors"
-              >
+              <Link href="/explore" className="px-6 py-3 bg-gradient-to-r from-violet-500 to-indigo-500 text-white text-sm font-bold rounded-2xl shadow-md shadow-violet-200 hover:from-violet-600 hover:to-indigo-600 transition-colors">
                 여행 탐색하러 가기
               </Link>
             </motion.div>
           ) : (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-            >
+            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               <AnimatePresence>
                 {trips.map((trip, i) => {
                   const [g1, g2] = getGradient(trip.country_code);
-                  const flag     = FLAG[trip.country_code] ?? '🌐';
-                  const dest     = trip.destination ?? '여행지';
-
+                  const flag = FLAG[trip.country_code] ?? '🌐';
+                  const dest = trip.destination ?? '여행지';
                   return (
-                    <motion.div
-                      key={trip.id}
-                      initial={{ opacity: 0, y: 20 }}
-                      animate={{ opacity: 1, y: 0 }}
-                      exit={{ opacity: 0, scale: 0.92 }}
-                      transition={{ duration: 0.3, delay: i * 0.04 }}
-                    >
+                    <motion.div key={trip.id} initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }}
+                      exit={{ opacity: 0, scale: 0.92 }} transition={{ duration: 0.3, delay: i * 0.04 }}>
                       <Link href={`/t/${trip.id}`}>
-                        <motion.div
-                          whileHover={{ y: -5, boxShadow: '0 20px 56px rgba(0,0,0,0.13)' }}
+                        <motion.div whileHover={{ y: -5, boxShadow: '0 20px 56px rgba(0,0,0,0.13)' }}
                           className="rounded-[20px] overflow-hidden bg-white border border-slate-100 cursor-pointer"
-                          style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.07)' }}
-                        >
+                          style={{ boxShadow: '0 2px 16px rgba(0,0,0,0.07)' }}>
                           {/* 그라디언트 헤더 */}
-                          <div
-                            className="h-[150px] relative flex items-center justify-center"
-                            style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}
-                          >
+                          <div className="h-[150px] relative flex items-center justify-center"
+                            style={{ background: `linear-gradient(135deg, ${g1}, ${g2})` }}>
                             <div className="text-center">
                               <div className="text-5xl mb-2 drop-shadow">{flag}</div>
                               <div className="text-white/90 text-[13px] font-bold drop-shadow">{dest}</div>
@@ -181,8 +163,6 @@ export default function SavedTripsClient({
                             <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm rounded-[10px] px-2 py-1 text-[11px] font-bold text-white">
                               {fmtNights(trip.nights)}
                             </div>
-
-                            {/* 저장 해제 버튼 */}
                             <motion.button
                               onClick={e => handleUnsave(e, trip.id)}
                               whileTap={{ scale: 0.75 }}
@@ -211,6 +191,11 @@ export default function SavedTripsClient({
                                 {trip.view_count.toLocaleString()}
                               </div>
                             </div>
+                            {trip.owner && (
+                              <div className="mt-2 pt-2 border-t border-slate-100">
+                                <OwnerBadge nickname={trip.owner.nickname} avatarUrl={trip.owner.avatar_url} />
+                              </div>
+                            )}
                           </div>
                         </motion.div>
                       </Link>

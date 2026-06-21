@@ -12,7 +12,11 @@ export default async function ExplorePage() {
     supabase.auth.getUser(),
     supabase
       .from('trip_rooms')
-      .select('id, title, destination, country_code, is_domestic, start_date, end_date, nights, marker_count, member_count, view_count')
+      .select(`
+        id, title, destination, country_code, is_domestic,
+        start_date, end_date, nights, marker_count, member_count, view_count,
+        owner:users!owner_id(nickname, avatar_url)
+      `)
       .eq('is_public', true)
       .order('view_count', { ascending: false })
       .limit(60),
@@ -42,7 +46,7 @@ export default async function ExplorePage() {
     <main className="min-h-screen bg-slate-50">
       <Navbar />
       <ExploreClient
-        trips={(trips ?? []) as PublicTrip[]}
+        trips={(trips ?? []) as unknown as PublicTrip[]}
         isLoggedIn={!!user}
         userId={userId}
         initialSavedIds={initialSavedIds}

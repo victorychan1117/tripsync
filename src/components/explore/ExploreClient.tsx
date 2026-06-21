@@ -19,6 +19,7 @@ export interface PublicTrip {
   marker_count: number;
   member_count: number;
   view_count: number;
+  owner: { nickname: string; avatar_url: string | null } | null;
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -72,6 +73,28 @@ function fmtNights(nights: number): string {
   return `${nights}박 ${nights + 1}일`;
 }
 
+// ─── OwnerBadge ──────────────────────────────────────────────────────────────
+function OwnerBadge({ nickname, avatarUrl }: { nickname: string; avatarUrl: string | null }) {
+  const initial = nickname.charAt(0).toUpperCase();
+  return (
+    <div className="flex items-center gap-1.5">
+      {avatarUrl && (avatarUrl.startsWith('http://') || avatarUrl.startsWith('https://')) ? (
+        <img src={avatarUrl} alt="" className="w-4 h-4 rounded-full object-cover" />
+      ) : avatarUrl ? (
+        <span style={{ fontSize: 13, lineHeight: 1 }}>{avatarUrl}</span>
+      ) : (
+        <div
+          className="w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0"
+          style={{ background: 'linear-gradient(135deg,#6366F1,#8B5CF6)', fontSize: 8, fontWeight: 800 }}
+        >
+          {initial}
+        </div>
+      )}
+      <span className="text-[11px] text-slate-400 font-semibold truncate">{nickname}님의 여행</span>
+    </div>
+  );
+}
+
 // ─── Toast ───────────────────────────────────────────────────────────────────
 function Toast({ message }: { message: string }) {
   return (
@@ -88,14 +111,9 @@ function Toast({ message }: { message: string }) {
 
 // ─── TripCard ────────────────────────────────────────────────────────────────
 function TripCard({
-  trip,
-  index,
-  isSaved,
-  onToggleSave,
+  trip, index, isSaved, onToggleSave,
 }: {
-  trip: PublicTrip;
-  index: number;
-  isSaved: boolean;
+  trip: PublicTrip; index: number; isSaved: boolean;
   onToggleSave: (e: React.MouseEvent, id: string) => void;
 }) {
   const [g1, g2] = getGradient(trip.country_code);
@@ -121,8 +139,6 @@ function TripCard({
             <div className="text-5xl mb-2 drop-shadow">{flag}</div>
             <div className="text-white/90 text-[13px] font-bold drop-shadow">{dest}</div>
           </div>
-
-          {/* 장소 수 칩 */}
           <div
             className="absolute top-3 right-3 bg-white/90 backdrop-blur-sm rounded-[10px] px-2.5 py-1 flex items-center gap-1 text-xs font-bold text-slate-700"
             style={{ boxShadow: '0 2px 8px rgba(0,0,0,0.10)' }}
@@ -130,25 +146,16 @@ function TripCard({
             <MapPin size={11} color={g1} />
             {trip.marker_count}개 장소
           </div>
-
-          {/* 기간 칩 */}
           <div className="absolute top-3 left-3 bg-white/20 backdrop-blur-sm rounded-[10px] px-2 py-1 text-[11px] font-bold text-white">
             {fmtNights(trip.nights)}
           </div>
-
-          {/* 하트 버튼 */}
           <motion.button
             onClick={e => onToggleSave(e, trip.id)}
             whileTap={{ scale: 0.75 }}
             className="absolute bottom-3 right-3 w-8 h-8 rounded-full bg-white/90 backdrop-blur-sm flex items-center justify-center shadow-md transition-colors hover:bg-white"
             aria-label={isSaved ? '저장 취소' : '저장하기'}
           >
-            <Heart
-              size={15}
-              fill={isSaved ? '#EF4444' : 'none'}
-              color={isSaved ? '#EF4444' : '#94a3b8'}
-              className="transition-colors"
-            />
+            <Heart size={15} fill={isSaved ? '#EF4444' : 'none'} color={isSaved ? '#EF4444' : '#94a3b8'} className="transition-colors" />
           </motion.button>
         </div>
 
@@ -170,6 +177,11 @@ function TripCard({
               {trip.view_count.toLocaleString()}
             </div>
           </div>
+          {trip.owner && (
+            <div className="mt-2 pt-2 border-t border-slate-100">
+              <OwnerBadge nickname={trip.owner.nickname} avatarUrl={trip.owner.avatar_url} />
+            </div>
+          )}
         </div>
       </motion.div>
     </Link>
@@ -208,24 +220,16 @@ function EmptyState({ hasFilters, onReset }: { hasFilters: boolean; onReset: () 
       {hasFilters ? (
         <>
           <h3 className="text-xl font-extrabold text-slate-800 mb-2">해당하는 여행이 없어요</h3>
-          <p className="text-slate-400 text-sm mb-8 max-w-xs leading-relaxed">
-            다른 필터 조합을 시도해보거나 필터를 초기화해보세요.
-          </p>
-          <motion.button
-            whileHover={{ scale: 1.03 }}
-            whileTap={{ scale: 0.97 }}
-            onClick={onReset}
-            className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all"
-          >
+          <p className="text-slate-400 text-sm mb-8 max-w-xs leading-relaxed">다른 필터 조합을 시도해보거나 필터를 초기화해보세요.</p>
+          <motion.button whileHover={{ scale: 1.03 }} whileTap={{ scale: 0.97 }} onClick={onReset}
+            className="px-6 py-2.5 bg-gradient-to-r from-violet-500 to-violet-600 hover:from-violet-600 hover:to-violet-700 text-white text-sm font-semibold rounded-xl shadow-md transition-all">
             필터 초기화
           </motion.button>
         </>
       ) : (
         <>
           <h3 className="text-xl font-extrabold text-slate-800 mb-2">아직 공개된 여행이 없어요</h3>
-          <p className="text-slate-400 text-sm max-w-xs leading-relaxed">
-            여행을 만들고 공개 설정하면 여기에 표시돼요.
-          </p>
+          <p className="text-slate-400 text-sm max-w-xs leading-relaxed">여행을 만들고 공개 설정하면 여기에 표시돼요.</p>
         </>
       )}
     </motion.div>
@@ -234,10 +238,7 @@ function EmptyState({ hasFilters, onReset }: { hasFilters: boolean; onReset: () 
 
 // ─── Main ────────────────────────────────────────────────────────────────────
 export default function ExploreClient({
-  trips,
-  isLoggedIn,
-  userId,
-  initialSavedIds,
+  trips, isLoggedIn, userId, initialSavedIds,
 }: {
   trips: PublicTrip[];
   isLoggedIn: boolean;
@@ -258,48 +259,23 @@ export default function ExploreClient({
   const handleToggleSave = useCallback(async (e: React.MouseEvent, tripId: string) => {
     e.preventDefault();
     e.stopPropagation();
-
-    if (!isLoggedIn || !userId) {
-      showToast('로그인 후 여행을 저장할 수 있어요.');
-      return;
-    }
+    if (!isLoggedIn || !userId) { showToast('로그인 후 여행을 저장할 수 있어요.'); return; }
 
     const supabase = createClient();
     const wasSaved = savedSet.has(tripId);
-
-    // 낙관적 업데이트
-    setSavedSet(prev => {
-      const next = new Set(prev);
-      if (wasSaved) next.delete(tripId); else next.add(tripId);
-      return next;
-    });
+    setSavedSet(prev => { const next = new Set(prev); if (wasSaved) next.delete(tripId); else next.add(tripId); return next; });
 
     if (wasSaved) {
-      const { error } = await supabase
-        .from('saved_trips')
-        .delete()
-        .eq('user_id', userId)
-        .eq('room_id', tripId);
-      if (error) {
-        setSavedSet(prev => { const next = new Set(prev); next.add(tripId); return next; });
-        showToast('저장 해제에 실패했어요.');
-      } else {
-        showToast('저장을 취소했어요.');
-      }
+      const { error } = await supabase.from('saved_trips').delete().eq('user_id', userId).eq('room_id', tripId);
+      if (error) { setSavedSet(prev => { const next = new Set(prev); next.add(tripId); return next; }); showToast('저장 해제에 실패했어요.'); }
+      else showToast('저장을 취소했어요.');
     } else {
-      const { error } = await supabase
-        .from('saved_trips')
-        .insert({ user_id: userId, room_id: tripId });
-      if (error) {
-        setSavedSet(prev => { const next = new Set(prev); next.delete(tripId); return next; });
-        showToast('저장에 실패했어요.');
-      } else {
-        showToast('여행 일지를 저장했어요.');
-      }
+      const { error } = await supabase.from('saved_trips').insert({ user_id: userId, room_id: tripId });
+      if (error) { setSavedSet(prev => { const next = new Set(prev); next.delete(tripId); return next; }); showToast('저장에 실패했어요.'); }
+      else showToast('여행 일지를 저장했어요.');
     }
   }, [isLoggedIn, userId, savedSet, showToast]);
 
-  // 나라 그룹 동적 추출
   const countryGroups = useMemo(() => {
     const groups = new Set(trips.map(t => getCountryGroup(t.country_code)));
     return ['전체', ...Array.from(groups).sort()];
@@ -324,51 +300,28 @@ export default function ExploreClient({
     });
   }, [trips, countryFilter, duration, search]);
 
-  const featured = useMemo(
-    () => trips.filter(t => t.view_count > 0).slice(0, 3),
-    [trips],
-  );
-
-  const resetFilters = () => {
-    setCountryFilter('전체');
-    setDuration('all');
-    setSearch('');
-  };
+  const featured = useMemo(() => trips.filter(t => t.view_count > 0).slice(0, 3), [trips]);
+  const resetFilters = () => { setCountryFilter('전체'); setDuration('all'); setSearch(''); };
 
   return (
     <div className="min-h-screen bg-slate-50">
-
-      {/* ── 페이지 헤더 ── */}
+      {/* 페이지 헤더 */}
       <div className="bg-white border-b border-slate-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-          <motion.div
-            initial={{ opacity: 0, y: 12 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.5 }}
-          >
-            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1.5">
-              여행 탐색
-            </h1>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.5 }}>
+            <h1 className="text-3xl font-extrabold text-slate-900 tracking-tight mb-1.5">여행 탐색</h1>
             <p className="text-slate-500 text-sm">
-              {trips.length > 0
-                ? `${trips.length}개의 공개 여행 일정을 탐색해보세요`
-                : '공개된 여행 일정이 아직 없어요'}
+              {trips.length > 0 ? `${trips.length}개의 공개 여행 일정을 탐색해보세요` : '공개된 여행 일정이 아직 없어요'}
             </p>
           </motion.div>
         </div>
       </div>
 
-      {/* ── 추천 섹션 ── */}
+      {/* 추천 섹션 */}
       <AnimatePresence>
         {!hasFilters && featured.length > 0 && (
-          <motion.section
-            key="featured"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            exit={{ opacity: 0 }}
-            transition={{ duration: 0.25 }}
-            className="bg-white border-b border-slate-100"
-          >
+          <motion.section key="featured" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+            transition={{ duration: 0.25 }} className="bg-white border-b border-slate-100">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
               <div className="flex items-center gap-2 mb-3">
                 <div className="flex items-center gap-1.5 bg-violet-50 border border-violet-100 rounded-full px-3 py-1">
@@ -378,18 +331,10 @@ export default function ExploreClient({
                   </span>
                 </div>
               </div>
-              <h2 className="text-xl font-extrabold text-slate-900 mb-6">
-                많은 분들이 즐겨 찾는 일정이에요
-              </h2>
+              <h2 className="text-xl font-extrabold text-slate-900 mb-6">많은 분들이 즐겨 찾는 일정이에요</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
                 {featured.map((trip, i) => (
-                  <TripCard
-                    key={trip.id}
-                    trip={trip}
-                    index={i}
-                    isSaved={savedSet.has(trip.id)}
-                    onToggleSave={handleToggleSave}
-                  />
+                  <TripCard key={trip.id} trip={trip} index={i} isSaved={savedSet.has(trip.id)} onToggleSave={handleToggleSave} />
                 ))}
               </div>
             </div>
@@ -397,59 +342,36 @@ export default function ExploreClient({
         )}
       </AnimatePresence>
 
-      {/* ── Sticky 필터바 ── */}
+      {/* Sticky 필터바 */}
       <div className="sticky top-16 z-40 bg-white/80 backdrop-blur-md border-b border-slate-100 shadow-sm">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3 space-y-3">
           <div className="relative">
             <Search size={15} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" />
-            <input
-              type="text"
-              placeholder="여행지, 제목으로 검색..."
-              value={search}
-              onChange={e => setSearch(e.target.value)}
-              className="w-full pl-9 pr-8 py-2.5 text-sm bg-slate-100 rounded-xl border-0 outline-none focus:bg-white focus:ring-2 focus:ring-violet-500/30 transition-all text-slate-800 placeholder:text-slate-400"
-            />
+            <input type="text" placeholder="여행지, 제목으로 검색..." value={search} onChange={e => setSearch(e.target.value)}
+              className="w-full pl-9 pr-8 py-2.5 text-sm bg-slate-100 rounded-xl border-0 outline-none focus:bg-white focus:ring-2 focus:ring-violet-500/30 transition-all text-slate-800 placeholder:text-slate-400" />
             {search && (
-              <button
-                onClick={() => setSearch('')}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
-              >
+              <button onClick={() => setSearch('')} className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={14} />
               </button>
             )}
           </div>
-
-          <div className="flex items-center gap-4 overflow-x-auto pb-0.5 [scrollbar-width:none] [-webkit-overflow-scrolling:touch]">
+          <div className="flex items-center gap-4 overflow-x-auto pb-0.5 [scrollbar-width:none]">
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="text-[11px] font-semibold text-slate-400 flex-shrink-0">여행지</span>
-              {countryGroups.map(c => (
-                <FilterPill key={c} label={c} active={countryFilter === c} onClick={() => setCountryFilter(c)} />
-              ))}
+              {countryGroups.map(c => <FilterPill key={c} label={c} active={countryFilter === c} onClick={() => setCountryFilter(c)} />)}
             </div>
             <div className="w-px h-5 bg-slate-200 flex-shrink-0" />
             <div className="flex items-center gap-1.5 flex-shrink-0">
               <span className="text-[11px] font-semibold text-slate-400 flex-shrink-0">기간</span>
-              {DURATIONS.map(d => (
-                <FilterPill key={d.value} label={d.label} active={duration === d.value} onClick={() => setDuration(d.value)} />
-              ))}
+              {DURATIONS.map(d => <FilterPill key={d.value} label={d.label} active={duration === d.value} onClick={() => setDuration(d.value)} />)}
             </div>
           </div>
-
           <AnimatePresence>
             {hasFilters && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                className="flex items-center justify-between overflow-hidden"
-              >
-                <span className="text-xs text-slate-500">
-                  <span className="font-bold text-violet-600">{filtered.length}개</span>의 일정
-                </span>
-                <button
-                  onClick={resetFilters}
-                  className="text-xs font-semibold text-slate-400 hover:text-violet-500 flex items-center gap-1 transition-colors"
-                >
+              <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} exit={{ opacity: 0, height: 0 }}
+                className="flex items-center justify-between overflow-hidden">
+                <span className="text-xs text-slate-500"><span className="font-bold text-violet-600">{filtered.length}개</span>의 일정</span>
+                <button onClick={resetFilters} className="text-xs font-semibold text-slate-400 hover:text-violet-500 flex items-center gap-1 transition-colors">
                   <X size={11} />초기화
                 </button>
               </motion.div>
@@ -458,7 +380,7 @@ export default function ExploreClient({
         </div>
       </div>
 
-      {/* ── 결과 그리드 ── */}
+      {/* 결과 그리드 */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
         {!hasFilters && trips.length > 0 && (
           <div className="flex items-center justify-between mb-6">
@@ -466,25 +388,12 @@ export default function ExploreClient({
             <span className="text-sm text-slate-400">총 {trips.length}개</span>
           </div>
         )}
-
         <AnimatePresence mode="wait">
           {filtered.length > 0 ? (
-            <motion.div
-              key="grid"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5"
-            >
+            <motion.div key="grid" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} transition={{ duration: 0.2 }}
+              className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
               {filtered.map((trip, i) => (
-                <TripCard
-                  key={trip.id}
-                  trip={trip}
-                  index={i}
-                  isSaved={savedSet.has(trip.id)}
-                  onToggleSave={handleToggleSave}
-                />
+                <TripCard key={trip.id} trip={trip} index={i} isSaved={savedSet.has(trip.id)} onToggleSave={handleToggleSave} />
               ))}
             </motion.div>
           ) : (
@@ -493,7 +402,6 @@ export default function ExploreClient({
         </AnimatePresence>
       </div>
 
-      {/* ── 토스트 ── */}
       <AnimatePresence>
         {toast && <Toast key={toast + Date.now()} message={toast} />}
       </AnimatePresence>

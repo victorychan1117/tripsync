@@ -354,30 +354,28 @@ export default function Navbar() {
                       저장한 여행
                     </Link>
 
-                    {/* 내 정보 */}
-                    <button
-                      onClick={() => { setProfileOpen(true); setDropdownOpen(false); }}
+                    {/* 내 프로필 */}
+                    <Link
+                      href="/my/profile"
+                      onClick={() => setDropdownOpen(false)}
                       style={{
                         width:      '100%',
                         display:    'flex',
                         alignItems: 'center',
                         gap:        10,
                         padding:    '12px 18px',
-                        background: 'transparent',
-                        border:     'none',
-                        cursor:     'pointer',
                         fontSize:   14,
                         fontWeight: 600,
                         color:      '#374151',
-                        textAlign:  'left',
+                        textDecoration: 'none',
                         transition: 'background 0.15s',
                       }}
                       onMouseEnter={e => ((e.currentTarget as HTMLElement).style.background = '#f8fafc')}
                       onMouseLeave={e => ((e.currentTarget as HTMLElement).style.background = 'transparent')}
                     >
                       <User size={16} color="#6366F1" />
-                      내 정보
-                    </button>
+                      내 프로필
+                    </Link>
 
                     {/* 로그아웃 */}
                     <button

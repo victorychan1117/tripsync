@@ -32,7 +32,11 @@ export default async function TripPublicPage({ params }: Props) {
     supabase.auth.getUser(),
     supabase
       .from('trip_rooms')
-      .select('id, title, destination, country_code, is_domestic, start_date, end_date, nights, marker_count, member_count, view_count')
+      .select(`
+        id, title, destination, country_code, is_domestic,
+        start_date, end_date, nights, marker_count, member_count, view_count,
+        owner:users!owner_id(nickname, avatar_url)
+      `)
       .eq('id', tripId)
       .eq('is_public', true)
       .single(),
@@ -76,11 +80,18 @@ export default async function TripPublicPage({ params }: Props) {
     .eq('id', tripId)
     .then(() => {});
 
+  // Supabase PostgREST는 embedded join을 배열로 반환할 수 있음 — 정규화
+  const raw = trip as Record<string, unknown>;
+  const normalizedTrip = {
+    ...raw,
+    owner: Array.isArray(raw.owner) ? (raw.owner[0] ?? null) : raw.owner,
+  };
+
   return (
     <main className="min-h-screen bg-[#F6F4FF]">
       <Navbar />
       <TripPublicView
-        trip={trip}
+        trip={normalizedTrip as import('@/components/explore/TripPublicView').Trip}
         markers={markers ?? []}
         userId={userId}
         initialSaved={initialSaved}

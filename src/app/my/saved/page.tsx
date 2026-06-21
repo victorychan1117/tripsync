@@ -27,7 +27,8 @@ export default async function SavedTripsPage() {
       created_at,
       trip_rooms (
         id, title, destination, country_code,
-        nights, marker_count, view_count
+        nights, marker_count, view_count,
+        owner:users!owner_id(nickname, avatar_url)
       )
     `)
     .eq('user_id', dbUser.id)
@@ -37,7 +38,7 @@ export default async function SavedTripsPage() {
     .flatMap(s => {
       const t = s.trip_rooms;
       if (!t || Array.isArray(t)) return [];
-      return [t as SavedTrip];
+      return [t as unknown as SavedTrip];
     });
 
   return (
