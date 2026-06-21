@@ -7,6 +7,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Calendar, Users, ArrowLeft, Clock, ChevronLeft, ChevronRight, Eye, Heart, Copy, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
+import type { TripRoom } from '@/lib/supabase/types';
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 
 const FLAG: Record<string, string> = {
   KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
@@ -102,6 +105,16 @@ export default function TripPublicView({
   const days      = Array.from(new Set(markers.map(m => m.day_number))).sort((a, b) => a - b);
   const [activeDay, setActiveDay] = useState<number>(days[0] ?? 1);
   const activeMarkers = markers.filter(m => m.day_number === activeDay);
+
+  // 제휴 배너 — 해외여행(TRIP_HEADER_BANNER), 2박이상(DAY_DIVIDER_BANNER)
+  const is_domestic = trip.country_code === 'KR';
+  const affiliateRoom = {
+    nights: trip.nights, is_domestic,
+    destination: trip.destination,
+    start_date: trip.start_date, end_date: trip.end_date,
+  } as TripRoom;
+  const headerBanner  = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'TRIP_HEADER_BANNER');
+  const dividerBanner = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'DAY_DIVIDER_BANNER');
   const dayIdx  = days.indexOf(activeDay);
   const hasPrev = dayIdx > 0, hasNext = dayIdx < days.length - 1;
 
@@ -247,6 +260,18 @@ export default function TripPublicView({
         </div>
       </div>
 
+      {/* ── 제휴 배너: 항공권 (해외 여행만) ── */}
+      {headerBanner && (
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+          <AffiliateBanner
+            insertion={headerBanner}
+            roomId={trip.id}
+            destination={trip.destination}
+            variant="header"
+          />
+        </div>
+      )}
+
       {/* ── 본문 ── */}
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {markers.length === 0 ? (
@@ -316,8 +341,19 @@ export default function TripPublicView({
           </>
         )}
 
+        {/* ── 제휴 배너: 숙소 (2박 이상만) ── */}
+        {dividerBanner && markers.length > 0 && (
+          <AffiliateBanner
+            insertion={dividerBanner}
+            roomId={trip.id}
+            destination={trip.destination}
+            variant="divider"
+            className="mt-6"
+          />
+        )}
+
         {/* CTA */}
-        <div className="mt-10 bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-3xl p-6 text-center">
+        <div className="mt-8 bg-gradient-to-br from-violet-50 to-indigo-50 border border-violet-100 rounded-3xl p-6 text-center">
           <p className="text-[15px] font-extrabold text-slate-800 mb-1.5">이런 여행 일정 나도 만들어볼까요? ✈️</p>
           <p className="text-sm text-slate-500 mb-4">TripSync로 친구들과 함께 여행 일정을 만들어보세요.</p>
           <Link href="/room/new" className="inline-flex items-center gap-2 bg-gradient-to-r from-violet-500 to-indigo-500 hover:from-violet-600 hover:to-indigo-600 text-white text-sm font-bold px-6 py-3 rounded-2xl shadow-md shadow-violet-200 transition-colors">

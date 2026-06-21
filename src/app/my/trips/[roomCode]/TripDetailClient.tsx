@@ -11,6 +11,9 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { createClient } from '@/lib/supabase/client';
+import { getPrimaryAffiliate } from '@/lib/affiliate/affiliateRules';
+import type { TripRoom } from '@/lib/supabase/types';
+import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 
 // ─── 상수 ────────────────────────────────────────────────────────────
 const FLAG: Record<string, string> = {
@@ -277,6 +280,18 @@ export default function TripDetailClient({
 
   const myRoleCfg = ROLE_CFG[myRole] ?? { label: myRole, cls: 'bg-slate-100 text-slate-500' };
 
+  // 제휴 배너 — 해외여행(항공), 2박이상(숙소)
+  const nights_val = room.start_date && room.end_date
+    ? Math.round((new Date(room.end_date).getTime() - new Date(room.start_date).getTime()) / 86400000)
+    : 0;
+  const affiliateRoom = {
+    nights: nights_val, is_domestic: room.country_code === 'KR',
+    destination: room.destination,
+    start_date: room.start_date, end_date: room.end_date,
+  } as TripRoom;
+  const headerBanner  = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'TRIP_HEADER_BANNER');
+  const dividerBanner = getPrimaryAffiliate({ room: affiliateRoom, markers: [] }, 'DAY_DIVIDER_BANNER');
+
   const handleCopy = async () => {
     await navigator.clipboard.writeText(
       `${process.env.NEXT_PUBLIC_APP_URL}/room/${room.id}`
@@ -417,6 +432,18 @@ export default function TripDetailClient({
         </div>
       </div>
 
+      {/* ── 제휴 배너: 항공권 (해외 여행만) ── */}
+      {headerBanner && (
+        <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 pt-5">
+          <AffiliateBanner
+            insertion={headerBanner}
+            roomId={room.id}
+            destination={room.destination}
+            variant="header"
+          />
+        </div>
+      )}
+
       {/* ── 본문 ─────────────────────────────────────────────── */}
       <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
@@ -550,6 +577,17 @@ export default function TripDetailClient({
                     )}
                   </motion.div>
                 </AnimatePresence>
+
+                {/* ── 제휴 배너: 숙소 (2박 이상만) ── */}
+                {dividerBanner && (
+                  <AffiliateBanner
+                    insertion={dividerBanner}
+                    roomId={room.id}
+                    destination={room.destination}
+                    variant="divider"
+                    className="mt-4"
+                  />
+                )}
               </>
             )}
           </section>
