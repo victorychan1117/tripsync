@@ -18,13 +18,13 @@ export const metadata: Metadata = {
     description: '다른 여행자들이 공개한 여행 일정과 코스를 둘러보고, 마음에 드는 여행을 내 일정으로 담아보세요.',
     url:         '/explore',
     type:        'website',
-    images:      [{ url: '/landing/hero.png', width: 1672, height: 941, alt: '공개 여행 둘러보기' }],
+    images:      [{ url: '/landing/og-image.png', width: 1200, height: 630, alt: '공개 여행 둘러보기' }],
   },
   twitter: {
     card:        'summary_large_image',
     title:       `공개 여행 둘러보기 | ${APP_NAME}`,
     description: '다른 여행자들이 공개한 여행 일정과 코스를 둘러보고, 마음에 드는 여행을 내 일정으로 담아보세요.',
-    images:      ['/landing/hero.png'],
+    images:      ['/landing/og-image.png'],
   },
 };
 export const revalidate = 60;

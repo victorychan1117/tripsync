@@ -4,7 +4,7 @@ import { APP_URL } from '@/lib/config/site';
 export const COVER_BUCKET = 'trip-covers';
 export const MAX_COVER_SIZE_BYTES = 5 * 1024 * 1024;
 export const ALLOWED_COVER_MIME = ['image/jpeg', 'image/png', 'image/webp'] as const;
-export const DEFAULT_OG_IMAGE = '/landing/hero.png';
+export const DEFAULT_OG_IMAGE = '/landing/og-image.png';
 
 export type CoverUploadError = 'invalid_type' | 'size_exceeded' | 'upload_failed' | 'db_failed';
 

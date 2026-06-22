@@ -1,10 +1,23 @@
 'use client';
-import { useState, Suspense } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import BrandLogo from '@/components/brand/BrandLogo';
-import { Mail, Lock, Loader2, Eye, EyeOff } from 'lucide-react';
+import { Mail, Lock, Loader2, Eye, EyeOff, Copy, Check, AlertTriangle } from 'lucide-react';
 import Link from 'next/link';
+
+function detectInAppBrowser(): string | null {
+  if (typeof navigator === 'undefined') return null;
+  const ua = navigator.userAgent;
+  if (/KAKAOTALK/i.test(ua))         return '카카오톡';
+  if (/Daangn|karrot/i.test(ua))     return '당근마켓';
+  if (/Instagram/i.test(ua))         return '인스타그램';
+  if (/FBAN|FBAV|FB_IAB/i.test(ua))  return '페이스북';
+  if (/NaverApp|NAVER\//i.test(ua))  return '네이버';
+  if (/Line\//i.test(ua))            return '라인';
+  if (/Twitter/i.test(ua))           return '트위터';
+  return null;
+}
 
 function LoginForm() {
   const router       = useRouter();
@@ -12,11 +25,23 @@ function LoginForm() {
   const redirect     = searchParams.get('redirect') ?? '/';
   const supabase     = createClient();
 
-  const [email,    setEmail]    = useState('');
-  const [password, setPassword] = useState('');
-  const [showPw,   setShowPw]   = useState(false);
-  const [loading,  setLoading]  = useState<'google' | 'email' | null>(null);
-  const [error,    setError]    = useState('');
+  const [email,      setEmail]      = useState('');
+  const [password,   setPassword]   = useState('');
+  const [showPw,     setShowPw]     = useState(false);
+  const [loading,    setLoading]    = useState<'google' | 'email' | null>(null);
+  const [error,      setError]      = useState('');
+  const [inAppName,  setInAppName]  = useState<string | null>(null);
+  const [copied,     setCopied]     = useState(false);
+
+  useEffect(() => {
+    setInAppName(detectInAppBrowser());
+  }, []);
+
+  const handleCopyUrl = async () => {
+    await navigator.clipboard.writeText(window.location.href);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   const handleGoogleLogin = async () => {
     setLoading('google');
@@ -65,22 +90,43 @@ function LoginForm() {
         <div className="px-8 py-7 flex flex-col gap-3">
 
           {/* 소셜 로그인 */}
-          <button
-            onClick={handleGoogleLogin}
-            disabled={!!loading}
-            className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border-2 border-slate-200 font-semibold text-sm text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50 transition-all"
-          >
-            {loading === 'google'
-              ? <Loader2 size={18} className="animate-spin" />
-              : <svg width="18" height="18" viewBox="0 0 24 24">
-                  <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
-                  <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
-                  <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
-                  <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
-                </svg>
-            }
-            Google로 계속하기
-          </button>
+          {inAppName ? (
+            <div className="rounded-2xl border-2 border-amber-200 bg-amber-50 p-4 flex flex-col gap-3">
+              <div className="flex items-start gap-2">
+                <AlertTriangle size={16} className="text-amber-500 mt-0.5 shrink-0" />
+                <p className="text-xs text-amber-800 leading-relaxed">
+                  <span className="font-bold">{inAppName} 브라우저</span>에서는 Google 로그인이 차단됩니다.<br />
+                  Chrome 또는 Safari에서 열어주세요.
+                </p>
+              </div>
+              <button
+                onClick={handleCopyUrl}
+                className="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl bg-amber-500 text-white text-xs font-semibold hover:bg-amber-600 transition-colors"
+              >
+                {copied
+                  ? <><Check size={14} /> 복사됨</>
+                  : <><Copy size={14} /> 주소 복사하기</>
+                }
+              </button>
+            </div>
+          ) : (
+            <button
+              onClick={handleGoogleLogin}
+              disabled={!!loading}
+              className="w-full flex items-center justify-center gap-3 py-3.5 rounded-2xl border-2 border-slate-200 font-semibold text-sm text-slate-700 hover:border-slate-300 hover:bg-slate-50 disabled:opacity-50 transition-all"
+            >
+              {loading === 'google'
+                ? <Loader2 size={18} className="animate-spin" />
+                : <svg width="18" height="18" viewBox="0 0 24 24">
+                    <path fill="#4285F4" d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"/>
+                    <path fill="#34A853" d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"/>
+                    <path fill="#FBBC05" d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"/>
+                    <path fill="#EA4335" d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"/>
+                  </svg>
+              }
+              Google로 계속하기
+            </button>
+          )}
 
           {/* 구분선 */}
           <div className="flex items-center gap-3 my-1">

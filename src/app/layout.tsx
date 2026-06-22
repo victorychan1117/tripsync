@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import './globals.css';
 import { APP_URL, APP_NAME } from '@/lib/config/site';
 
-const OG_IMAGE = { url: '/landing/hero.png', width: 1672, height: 941, alt: `${APP_NAME} — 함께 만드는 여행 일정` };
+const OG_IMAGE = { url: '/landing/og-image.png', width: 1200, height: 630, alt: `${APP_NAME} — 함께 만드는 여행 일정` };
 
 export const metadata: Metadata = {
   title: {
@@ -24,7 +24,7 @@ export const metadata: Metadata = {
     card:        'summary_large_image',
     title:       `${APP_NAME} - 함께 만드는 여행 일정`,
     description: '여행 일정을 만들고, 동행과 공유하고, 다른 사람의 공개 여행을 참고해보세요.',
-    images:      ['/landing/hero.png'],
+    images:      ['/landing/og-image.png'],
   },
 };
 
