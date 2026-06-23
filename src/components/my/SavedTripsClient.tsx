@@ -19,13 +19,7 @@ import {
   type SavedTripFolder,
   getFolderErrorMessage,
 } from '@/lib/saved/folders';
-
-const FLAG: Record<string, string> = {
-  KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
-  MY:'🇲🇾', PH:'🇵🇭', TW:'🇹🇼', HK:'🇭🇰', CN:'🇨🇳', FR:'🇫🇷',
-  IT:'🇮🇹', ES:'🇪🇸', GB:'🇬🇧', DE:'🇩🇪', US:'🇺🇸', AU:'🇦🇺',
-  NZ:'🇳🇿', TR:'🇹🇷', GR:'🇬🇷', CH:'🇨🇭', MV:'🇲🇻', IN:'🇮🇳', CA:'🇨🇦',
-};
+import { FLAG } from '@/lib/constants/flags';
 
 export interface SavedTrip {
   savedTripId: number;

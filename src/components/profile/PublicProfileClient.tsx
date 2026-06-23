@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Eye, Clock, Heart, Copy, ArrowLeft, Globe } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import TripCoverBanner from '@/components/trip/TripCoverBanner';
+import { FLAG } from '@/lib/constants/flags';
 
 // ─── Types ───────────────────────────────────────────────────────────────
 export interface ProfileUser {
@@ -28,14 +29,6 @@ export interface ProfileTrip {
 }
 
 // ─── Constants ───────────────────────────────────────────────────────────
-const FLAG: Record<string, string> = {
-  KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
-  MY:'🇲🇾', PH:'🇵🇭', TW:'🇹🇼', HK:'🇭🇰', CN:'🇨🇳', FR:'🇫🇷',
-  IT:'🇮🇹', ES:'🇪🇸', GB:'🇬🇧', DE:'🇩🇪', US:'🇺🇸', AU:'🇦🇺',
-  NZ:'🇳🇿', TR:'🇹🇷', GR:'🇬🇷', CH:'🇨🇭', AT:'🇦🇹', NL:'🇳🇱',
-  PT:'🇵🇹', MA:'🇲🇦', MV:'🇲🇻', IN:'🇮🇳', NP:'🇳🇵', CA:'🇨🇦',
-  MX:'🇲🇽', BR:'🇧🇷', AR:'🇦🇷',
-};
 
 const GRADIENT: Record<string, [string, string]> = {
   KR: ['#43B89C', '#3B82F6'], JP: ['#FF6B6B', '#FF8E53'],

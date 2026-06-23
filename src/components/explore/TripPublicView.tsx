@@ -15,13 +15,7 @@ import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 import TripReactions from '@/components/trip/TripReactions';
 import TripComments, { type TripCommentItem } from '@/components/trip/TripComments';
 import type { ReactionCounts, ReactionType } from '@/lib/trip/reactions';
-
-const FLAG: Record<string, string> = {
-  KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
-  MY:'🇲🇾', PH:'🇵🇭', TW:'🇹🇼', HK:'🇭🇰', CN:'🇨🇳', FR:'🇫🇷',
-  IT:'🇮🇹', ES:'🇪🇸', GB:'🇬🇧', DE:'🇩🇪', US:'🇺🇸', AU:'🇦🇺',
-  NZ:'🇳🇿', TR:'🇹🇷', GR:'🇬🇷', CH:'🇨🇭', MV:'🇲🇻', IN:'🇮🇳', CA:'🇨🇦',
-};
+import { FLAG } from '@/lib/constants/flags';
 
 const CATEGORY_ICON: Record<string, string> = {
   restaurant:'🍽', cafe:'☕', attraction:'🎯', lodging:'🏨',

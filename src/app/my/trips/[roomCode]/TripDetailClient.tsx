@@ -18,15 +18,7 @@ import type { TripRoom } from '@/lib/supabase/types';
 import AffiliateBanner from '@/components/affiliate/AffiliateBanner';
 import CompletionModal from '@/components/affiliate/CompletionModal';
 import CoverImageUpload from '@/components/trip/CoverImageUpload';
-
-// ─── 상수 ────────────────────────────────────────────────────────────
-const FLAG: Record<string, string> = {
-  KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
-  MY:'🇲🇾', PH:'🇵🇭', TW:'🇹🇼', HK:'🇭🇰', CN:'🇨🇳', FR:'🇫🇷',
-  IT:'🇮🇹', ES:'🇪🇸', GB:'🇬🇧', DE:'🇩🇪', US:'🇺🇸', AU:'🇦🇺',
-  NZ:'🇳🇿', TR:'🇹🇷', GR:'🇬🇷', CH:'🇨🇭', AT:'🇦🇹', NL:'🇳🇱',
-  PT:'🇵🇹', MA:'🇲🇦', MV:'🇲🇻', IN:'🇮🇳', NP:'🇳🇵', CA:'🇨🇦',
-};
+import { FLAG } from '@/lib/constants/flags';
 
 const CATEGORY_ICON: Record<string, string> = {
   restaurant:'🍽', cafe:'☕', attraction:'🎯', lodging:'🏨',

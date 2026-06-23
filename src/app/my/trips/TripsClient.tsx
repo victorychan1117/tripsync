@@ -10,6 +10,7 @@ import {
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { getCountryGradient } from '@/lib/trip/coverImage';
+import { FLAG } from '@/lib/constants/flags';
 
 // ─── 타입 ────────────────────────────────────────────────────────────
 interface Trip {
@@ -29,14 +30,6 @@ interface Trip {
 }
 
 // ─── 상수 ────────────────────────────────────────────────────────────
-const FLAG: Record<string, string> = {
-  KR:'🇰🇷', JP:'🇯🇵', TH:'🇹🇭', VN:'🇻🇳', ID:'🇮🇩', SG:'🇸🇬',
-  MY:'🇲🇾', PH:'🇵🇭', TW:'🇹🇼', HK:'🇭🇰', CN:'🇨🇳', FR:'🇫🇷',
-  IT:'🇮🇹', ES:'🇪🇸', GB:'🇬🇧', DE:'🇩🇪', US:'🇺🇸', AU:'🇦🇺',
-  NZ:'🇳🇿', TR:'🇹🇷', GR:'🇬🇷', CH:'🇨🇭', AT:'🇦🇹', NL:'🇳🇱',
-  PT:'🇵🇹', MA:'🇲🇦', MV:'🇲🇻', IN:'🇮🇳', NP:'🇳🇵', BR:'🇧🇷',
-  AR:'🇦🇷', MX:'🇲🇽', CA:'🇨🇦',
-};
 
 const ROLE_CFG: Record<string, { label: string; cls: string }> = {
   owner:  { label: '여행장',    cls: 'bg-violet-100 text-violet-600' },
