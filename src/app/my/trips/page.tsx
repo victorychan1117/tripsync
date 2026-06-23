@@ -11,8 +11,9 @@ export const metadata = {
 
 export default async function MyTripsPage() {
   const userClient = await createClient();
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) redirect('/login?redirect=/my/trips');
+  const { data: { session } } = await userClient.auth.getSession();
+  if (!session?.user) redirect('/login?redirect=/my/trips');
+  const user = session.user;
 
   const service = createServiceClient();
 

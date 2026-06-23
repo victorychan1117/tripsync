@@ -65,8 +65,8 @@ export default async function TripPublicPage({ params }: Props) {
   const { tripId } = await params;
   const supabase = await createClient();
 
-  const [{ data: { user } }, { data: trip }, { data: markers }, { data: comments }, { data: reactions }] = await Promise.all([
-    supabase.auth.getUser(),
+  const [{ data: { session } }, { data: trip }, { data: markers }, { data: comments }, { data: reactions }] = await Promise.all([
+    supabase.auth.getSession(),
     supabase
       .from('trip_rooms')
       .select(`
@@ -105,6 +105,7 @@ export default async function TripPublicPage({ params }: Props) {
   let userId: string | null = null;
   let initialSaved = false;
 
+  const user = session?.user ?? null;
   if (user) {
     const { data: dbUser } = await supabase
       .from('users')

@@ -13,8 +13,9 @@ export const metadata = {
 export default async function SavedTripsPage() {
   const supabase = await createClient();
 
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) redirect('/login?redirect=/my/saved');
+  const { data: { session } } = await supabase.auth.getSession();
+  if (!session?.user) redirect('/login?redirect=/my/saved');
+  const user = session.user;
 
   const { data: dbUser } = await supabase
     .from('users')

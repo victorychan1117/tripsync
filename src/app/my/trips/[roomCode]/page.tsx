@@ -16,8 +16,9 @@ export default async function TripDetailPage({ params }: Props) {
   const { roomCode } = await params;
 
   const userClient = await createClient();
-  const { data: { user } } = await userClient.auth.getUser();
-  if (!user) redirect(`/login?redirect=/my/trips/${roomCode}`);
+  const { data: { session } } = await userClient.auth.getSession();
+  if (!session?.user) redirect(`/login?redirect=/my/trips/${roomCode}`);
+  const user = session.user;
 
   const service = createServiceClient();
 

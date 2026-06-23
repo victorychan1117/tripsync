@@ -187,14 +187,11 @@ export default function Navbar() {
   useEffect(() => {
     const supabase = createClient();
 
-    supabase.auth.getUser().then(({ data }: { data: { user: SupabaseUser | null } }) => {
-      setUser(data.user);
-      setLoading(false);
-    });
-
+    // onAuthStateChange fires with INITIAL_SESSION immediately (cookie read, no network call)
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (_event: string, session: { user: SupabaseUser } | null) => {
         setUser(session?.user ?? null);
+        setLoading(false);
       }
     );
 
