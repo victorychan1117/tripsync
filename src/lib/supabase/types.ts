@@ -96,8 +96,19 @@ export interface TripRoom {
   cover_image_url:   string | null;
   view_count:        number;
   fork_count:        number;
+  save_count:        number;
+  comment_count:     number;
   created_at:        string;
   updated_at:        string;
+}
+
+export interface AppEvent {
+  id:         string;
+  event_name: string;
+  room_id:    string | null;
+  user_id:    string | null;
+  metadata:   Record<string, unknown> | null;
+  created_at: string;
 }
 
 export interface TripMember {

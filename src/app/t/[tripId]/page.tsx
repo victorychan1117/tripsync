@@ -71,7 +71,8 @@ export default async function TripPublicPage({ params }: Props) {
       .from('trip_rooms')
       .select(`
         id, title, destination, country_code, is_domestic,
-        start_date, end_date, nights, marker_count, member_count, view_count,
+        start_date, end_date, nights, marker_count, member_count,
+        view_count, fork_count, save_count, comment_count,
         cover_image_url, created_at, updated_at,
         owner:users!owner_id(id, nickname, avatar_url)
       `)

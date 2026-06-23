@@ -6,11 +6,12 @@ import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   MapPin, Eye, Search, X, Sparkles, Compass, Clock, Heart, Copy,
-  Luggage, Bookmark, Plus,
+  Luggage, Bookmark, Plus, MessageCircle,
 } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { cn } from '@/lib/utils';
 import { FLAG } from '@/lib/constants/flags';
+import { trackEvent } from '@/lib/analytics/trackEvent';
 
 // ─── Types ────────────────────────────────────────────────────────────────
 export interface PublicTrip {
@@ -26,6 +27,8 @@ export interface PublicTrip {
   member_count:    number;
   view_count:      number;
   fork_count:      number;
+  save_count:      number;
+  comment_count:   number;
   cover_image_url: string | null;
   created_at:      string;
   owner: { id: string; nickname: string; avatar_url: string | null } | null;
@@ -256,6 +259,7 @@ function TripCard({
   return (
     <Link
       href={`/t/${trip.id}`}
+      onClick={() => trackEvent({ event: 'explore_card_clicked', roomId: trip.id })}
       className="group block focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-violet-400 focus-visible:ring-offset-2 rounded-[18px]"
     >
       <motion.article
@@ -335,12 +339,24 @@ function TripCard({
             <div className="flex items-center gap-2.5 text-[11px] text-slate-400">
               <span className="flex items-center gap-1">
                 <Eye size={10} />
-                조회 {trip.view_count.toLocaleString()}
+                {trip.view_count.toLocaleString()}
               </span>
+              {trip.save_count > 0 && (
+                <span className="flex items-center gap-1">
+                  <Heart size={10} />
+                  {trip.save_count}
+                </span>
+              )}
               {trip.fork_count > 0 && (
                 <span className="flex items-center gap-1">
                   <Copy size={10} />
-                  담기 {trip.fork_count}
+                  {trip.fork_count}
+                </span>
+              )}
+              {trip.comment_count > 0 && (
+                <span className="flex items-center gap-1">
+                  <MessageCircle size={10} />
+                  {trip.comment_count}
                 </span>
               )}
             </div>
@@ -479,13 +495,19 @@ export default function ExploreClient({
       if (error) {
         setSavedSet(prev => { const next = new Set(prev); next.add(tripId); return next; });
         showToast('저장 해제에 실패했어요.');
-      } else showToast('저장을 취소했어요.');
+      } else {
+        showToast('저장을 취소했어요.');
+        trackEvent({ event: 'public_trip_unsaved', roomId: tripId, userId });
+      }
     } else {
       const { error } = await supabase.from('saved_trips').insert({ user_id: userId, room_id: tripId });
       if (error) {
         setSavedSet(prev => { const next = new Set(prev); next.delete(tripId); return next; });
         showToast('저장에 실패했어요.');
-      } else showToast('여행 일지를 저장했어요. 폴더는 저장함에서 정리할 수 있어요.');
+      } else {
+        showToast('나중에 보기에 저장했어요.');
+        trackEvent({ event: 'public_trip_saved', roomId: tripId, userId });
+      }
     }
   }, [isLoggedIn, userId, savedSet, showToast]);
 
@@ -707,7 +729,12 @@ export default function ExploreClient({
             <h2 className="text-[15px] font-extrabold text-slate-800">
               {hasAnyChange ? '검색 결과' : showFeatured ? '모든 공개 여행' : '공개 여행'}
             </h2>
-            <span className="text-[12px] text-slate-400">총 {mainTrips.length}개</span>
+            <div className="flex items-center gap-2">
+              <span className="text-[11px] font-semibold text-violet-500 bg-violet-50 px-2 py-0.5 rounded-full">
+                {SORTS.find(s => s.value === sort)?.label ?? '인기순'}
+              </span>
+              <span className="text-[12px] text-slate-400">{mainTrips.length}개</span>
+            </div>
           </div>
         )}
 

@@ -39,7 +39,7 @@ export default async function ExplorePage() {
       .select(`
         id, title, destination, country_code, is_domestic,
         start_date, end_date, nights, marker_count, member_count,
-        view_count, fork_count, cover_image_url, created_at,
+        view_count, fork_count, save_count, comment_count, cover_image_url, created_at,
         owner:users!owner_id(id, nickname, avatar_url)
       `)
       .eq('is_public', true)
