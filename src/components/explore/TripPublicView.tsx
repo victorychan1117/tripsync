@@ -495,7 +495,7 @@ export default function TripPublicView({
       </div>
 
       {/* ── 모바일 하단 고정 CTA ── */}
-      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/97 backdrop-blur-md border-t border-slate-100 px-4 py-3">
+      <div className="fixed bottom-0 left-0 right-0 z-50 md:hidden bg-white/97 backdrop-blur-md border-t border-slate-100 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom,0px))]">
         <div className="flex items-center gap-2 max-w-lg mx-auto">
           <motion.button
             onClick={handleToggleSave}
